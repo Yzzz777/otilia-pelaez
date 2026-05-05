@@ -48,6 +48,7 @@ const APP={
   announcements:[],students:[],notas:[],ausencias:[],
   inscripciones:[],reportes:[],padres:[],mensajes:[],
   notifications:[],customSections:[],profesores:[],
+  pasantias:[],aplicaciones:[],
   districtConnected:false,districtEmail:'',
   accounts:{
     admin:{email:'otiliapelaezadm@gmail.com',password:'otiliapelaezadmin1',role:'admin',name:'Administración'},
@@ -4931,6 +4932,8 @@ if(PERSIST_KEYS.indexOf('_userNotifs')===-1)   PERSIST_KEYS.push('_userNotifs');
 if(PERSIST_KEYS.indexOf('oriCasos')===-1)      PERSIST_KEYS.push('oriCasos');
 if(PERSIST_KEYS.indexOf('depEquipos')===-1)    PERSIST_KEYS.push('depEquipos');
 if(PERSIST_KEYS.indexOf('depTorneos')===-1)    PERSIST_KEYS.push('depTorneos');
+if(PERSIST_KEYS.indexOf('pasantias')===-1)     PERSIST_KEYS.push('pasantias');
+if(PERSIST_KEYS.indexOf('aplicaciones')===-1)  PERSIST_KEYS.push('aplicaciones');
 
 // Hook notifications into existing operations
 var _origSaveHorario = typeof saveHorario==='function' ? saveHorario : null;
@@ -7408,6 +7411,279 @@ function goToDirectoraPortal(tabId){
       },400);
     };
   }
+})();
+
+// ================================================================
+//  🏢 PASANTÍAS — Sistema de gestión de pasantías
+// ================================================================
+
+function _genPasId(){
+  return 'pas_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);
+}
+
+function renderPasantias(){
+  var tbody = document.getElementById('pas-table-body');
+  if(!tbody) return;
+  if(!APP.pasantias) APP.pasantias=[];
+  var q = (document.getElementById('pas-search')||{}).value||'';
+  q = q.toLowerCase().trim();
+  var list = APP.pasantias.filter(function(p){
+    if(!q) return true;
+    return (p.empresa||'').toLowerCase().indexOf(q)>-1 || (p.area||'').toLowerCase().indexOf(q)>-1;
+  });
+  // Update KPIs
+  var kpiTotal     = document.getElementById('kpi-pas-total');
+  var kpiPlazas    = document.getElementById('kpi-pas-plazas');
+  var kpiPendientes= document.getElementById('kpi-pas-pendientes');
+  var kpiComp      = document.getElementById('kpi-pas-completadas');
+  if(kpiTotal)      kpiTotal.textContent     = APP.pasantias.length;
+  if(kpiPlazas)     kpiPlazas.textContent    = APP.pasantias.filter(function(p){return p.estado==='activa';}).reduce(function(s,p){return s+(parseInt(p.plazas)||0);},0);
+  if(kpiPendientes) kpiPendientes.textContent= (APP.aplicaciones||[]).filter(function(a){return a.estado==='pendiente';}).length;
+  if(kpiComp)       kpiComp.textContent      = (APP.aplicaciones||[]).filter(function(a){return a.estado==='completada';}).length;
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">No hay pasantías registradas.</td></tr>';
+    return;
+  }
+  var estadoColor={activa:'#16a34a',cerrada:'#888'};
+  tbody.innerHTML=list.map(function(p){
+    var eColor=estadoColor[p.estado]||'#888';
+    return '<tr>'
+      +'<td><strong>'+p.empresa+'</strong></td>'
+      +'<td>'+p.area+'</td>'
+      +'<td style="text-align:center;">'+p.plazas+'</td>'
+      +'<td style="font-size:12px;">'+(p.inicio||'—')+' → '+(p.fin||'—')+'</td>'
+      +'<td><span class="pas-badge" style="background:'+eColor+'20;color:'+eColor+';border:1px solid '+eColor+'40;">'+p.estado+'</span></td>'
+      +'<td style="display:flex;gap:6px;flex-wrap:wrap;">'
+      +'<button class="action-btn" style="padding:4px 10px;font-size:12px;" onclick="editPasantia(\''+p.id+'\')">✏️ Editar</button>'
+      +'<button class="action-btn" style="padding:4px 10px;font-size:12px;background:#fee2e2;color:#dc2626;" onclick="deletePasantia(\''+p.id+'\')">🗑️ Eliminar</button>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function renderAplicaciones(){
+  var tbody = document.getElementById('aplicaciones-table-body');
+  if(!tbody) return;
+  if(!APP.aplicaciones) APP.aplicaciones=[];
+  if(!APP.aplicaciones.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">No hay aplicaciones registradas.</td></tr>';
+    return;
+  }
+  var estadoColor={pendiente:'#d97706',aprobada:'#16a34a',rechazada:'#dc2626',completada:'#2563eb'};
+  tbody.innerHTML=APP.aplicaciones.map(function(a){
+    var pas=(APP.pasantias||[]).find(function(p){return p.id===a.pasantiaId;})||{};
+    var eColor=estadoColor[a.estado]||'#888';
+    var acciones='';
+    if(a.estado==='pendiente'){
+      acciones+='<button class="action-btn" style="padding:4px 8px;font-size:11px;background:#dcfce7;color:#16a34a;" onclick="aprobarAplicacion(\''+a.id+'\')">✅ Aprobar</button>'
+               +'<button class="action-btn" style="padding:4px 8px;font-size:11px;background:#fee2e2;color:#dc2626;" onclick="rechazarAplicacion(\''+a.id+'\')">❌ Rechazar</button>';
+    } else if(a.estado==='aprobada'){
+      acciones+='<button class="action-btn" style="padding:4px 8px;font-size:11px;background:#dbeafe;color:#2563eb;" onclick="completarAplicacion(\''+a.id+'\')">🏁 Completar</button>';
+    }
+    return '<tr>'
+      +'<td><strong>'+a.studentName+'</strong></td>'
+      +'<td>'+(a.grado||'—')+'</td>'
+      +'<td>'+(pas.empresa||'(eliminada)')+'</td>'
+      +'<td style="font-size:12px;">'+(a.fecha||'—')+'</td>'
+      +'<td><span class="pas-badge" style="background:'+eColor+'20;color:'+eColor+';border:1px solid '+eColor+'40;">'+a.estado+'</span></td>'
+      +'<td style="display:flex;gap:4px;flex-wrap:wrap;">'+acciones+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function savePasantia(){
+  var empresa  = (document.getElementById('pas-empresa')||{}).value||'';
+  var area     = (document.getElementById('pas-area')||{}).value||'';
+  var plazas   = parseInt((document.getElementById('pas-plazas')||{}).value)||0;
+  var estado   = (document.getElementById('pas-estado')||{}).value||'activa';
+  var inicio   = (document.getElementById('pas-inicio')||{}).value||'';
+  var fin      = (document.getElementById('pas-fin')||{}).value||'';
+  var desc     = (document.getElementById('pas-descripcion')||{}).value||'';
+  var req      = (document.getElementById('pas-requisitos')||{}).value||'';
+  var editId   = (document.getElementById('pasantia-edit-id')||{}).value||'';
+  if(!empresa||!area){toast('Empresa y Área son obligatorios','error');return;}
+  if(!APP.pasantias) APP.pasantias=[];
+  if(editId){
+    var idx=APP.pasantias.findIndex(function(p){return p.id===editId;});
+    if(idx>-1){
+      APP.pasantias[idx].empresa=empresa;APP.pasantias[idx].area=area;
+      APP.pasantias[idx].plazas=plazas;APP.pasantias[idx].estado=estado;
+      APP.pasantias[idx].inicio=inicio;APP.pasantias[idx].fin=fin;
+      APP.pasantias[idx].descripcion=desc;APP.pasantias[idx].requisitos=req;
+    }
+  } else {
+    APP.pasantias.push({id:_genPasId(),empresa:empresa,area:area,plazas:plazas,
+      estado:estado,inicio:inicio,fin:fin,descripcion:desc,requisitos:req,
+      creada:new Date().toISOString().split('T')[0]});
+  }
+  persistSave();
+  renderPasantias();
+  closeModal('modal-pasantia');
+  toast('Pasantía guardada','success');
+}
+
+function editPasantia(id){
+  if(!APP.pasantias) return;
+  var p=APP.pasantias.find(function(x){return x.id===id;});
+  if(!p) return;
+  document.getElementById('pasantia-edit-id').value=id;
+  document.getElementById('pasantia-modal-title').textContent='✏️ Editar Pasantía';
+  document.getElementById('pas-empresa').value=p.empresa||'';
+  document.getElementById('pas-area').value=p.area||'';
+  document.getElementById('pas-plazas').value=p.plazas||'';
+  document.getElementById('pas-estado').value=p.estado||'activa';
+  document.getElementById('pas-inicio').value=p.inicio||'';
+  document.getElementById('pas-fin').value=p.fin||'';
+  document.getElementById('pas-descripcion').value=p.descripcion||'';
+  document.getElementById('pas-requisitos').value=p.requisitos||'';
+  openModal('modal-pasantia');
+}
+
+function deletePasantia(id){
+  if(!confirm('¿Eliminar esta pasantía?')) return;
+  if(!APP.pasantias) return;
+  APP.pasantias=APP.pasantias.filter(function(p){return p.id!==id;});
+  if(APP.aplicaciones) APP.aplicaciones=APP.aplicaciones.filter(function(a){return a.pasantiaId!==id;});
+  persistSave();
+  renderPasantias();
+  renderAplicaciones();
+  toast('Pasantía eliminada','info');
+}
+
+function _updateAplicacion(id,newEstado){
+  if(!APP.aplicaciones) return;
+  var idx=APP.aplicaciones.findIndex(function(a){return a.id===id;});
+  if(idx>-1){
+    APP.aplicaciones[idx].estado=newEstado;
+    persistSave();
+    renderAplicaciones();
+    toast('Aplicación actualizada a: '+newEstado,'success');
+  }
+}
+function aprobarAplicacion(id){    _updateAplicacion(id,'aprobada'); }
+function rechazarAplicacion(id){   _updateAplicacion(id,'rechazada'); }
+function completarAplicacion(id){  _updateAplicacion(id,'completada'); }
+
+function aplicarPasantia(pasantiaId){
+  if(!APP.currentUser){toast('Debes iniciar sesión','error');return;}
+  if(!APP.aplicaciones) APP.aplicaciones=[];
+  var yaExiste=APP.aplicaciones.find(function(a){return a.pasantiaId===pasantiaId&&a.studentId===APP.currentUser.email;});
+  if(yaExiste){toast('Ya tienes una aplicación para esta pasantía','info');return;}
+  var pas=(APP.pasantias||[]).find(function(p){return p.id===pasantiaId;});
+  if(!pas||pas.estado!=='activa'){toast('Esta pasantía no está activa','error');return;}
+  var st=(APP.students||[]).find(function(s){return s.email===APP.currentUser.email;});
+  APP.aplicaciones.push({
+    id:'apl_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+    pasantiaId:pasantiaId,
+    studentId:APP.currentUser.email,
+    studentName:APP.currentUser.name||(st?st.nombre:'Estudiante'),
+    grado:st?st.grado:'—',
+    fecha:new Date().toISOString().split('T')[0],
+    estado:'pendiente',
+    notas:''
+  });
+  persistSave();
+  renderPasantiasEstudiante();
+  toast('Aplicación enviada con éxito','success');
+}
+
+function renderPasantiasEstudiante(){
+  var listEl=document.getElementById('est-pasantias-list');
+  var misAplEl=document.getElementById('est-mis-aplicaciones');
+  if(!listEl) return;
+  if(!APP.pasantias) APP.pasantias=[];
+  var activas=APP.pasantias.filter(function(p){return p.estado==='activa';});
+  var misApl=(APP.aplicaciones||[]).filter(function(a){return a.studentId===(APP.currentUser?APP.currentUser.email:'');});
+  if(!activas.length){
+    listEl.innerHTML='<p style="color:#888;font-size:13px;text-align:center;padding:20px;grid-column:1/-1;">No hay pasantías disponibles en este momento.</p>';
+  } else {
+    listEl.innerHTML=activas.map(function(p){
+      var yaAplicado=misApl.find(function(a){return a.pasantiaId===p.id;});
+      return '<div class="pasantia-card">'
+        +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+        +'<div style="font-size:32px;">🏢</div>'
+        +'<div><h4 style="margin:0;color:var(--navy);font-size:15px;">'+p.empresa+'</h4>'
+        +'<span style="font-size:12px;color:#888;">'+p.area+'</span></div>'
+        +'</div>'
+        +(p.descripcion?'<p style="font-size:13px;color:#555;margin:0 0 10px;line-height:1.5;">'+p.descripcion+'</p>':'')
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">'
+        +(p.plazas?'<span class="pas-badge" style="background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;">💼 '+p.plazas+' plazas</span>':'')
+        +(p.inicio?'<span class="pas-badge" style="background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;">📅 '+p.inicio+' → '+(p.fin||'?')+'</span>':'')
+        +'</div>'
+        +(p.requisitos?'<p style="font-size:12px;color:#666;margin:0 0 12px;"><strong>Requisitos:</strong> '+p.requisitos+'</p>':'')
+        +(yaAplicado
+          ?'<button class="btn" style="width:100%;padding:8px;background:#e5e7eb;color:#666;cursor:not-allowed;border-radius:8px;" disabled>✅ Ya aplicaste ('+yaAplicado.estado+')</button>'
+          :'<button class="btn btn-gold" style="width:100%;padding:8px;" onclick="aplicarPasantia(\''+p.id+'\')">📩 Aplicar</button>'
+        )
+        +'</div>';
+    }).join('');
+  }
+  if(misAplEl){
+    if(!misApl.length){
+      misAplEl.innerHTML='<p style="color:#888;font-size:13px;">No tienes aplicaciones enviadas.</p>';
+    } else {
+      var estadoColor={pendiente:'#d97706',aprobada:'#16a34a',rechazada:'#dc2626',completada:'#2563eb'};
+      misAplEl.innerHTML='<div style="display:grid;gap:10px;">'+misApl.map(function(a){
+        var pas=(APP.pasantias||[]).find(function(p){return p.id===a.pasantiaId;})||{empresa:'(eliminada)'};
+        var eColor=estadoColor[a.estado]||'#888';
+        return '<div style="background:#f8fafc;border-radius:10px;padding:14px;border-left:4px solid '+eColor+';">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+          +'<strong style="color:var(--navy);">'+pas.empresa+'</strong>'
+          +'<span class="pas-badge" style="background:'+eColor+'20;color:'+eColor+';border:1px solid '+eColor+'40;">'+a.estado+'</span>'
+          +'</div>'
+          +'<p style="font-size:12px;color:#888;margin:4px 0 0;">Enviada el '+a.fecha+'</p>'
+          +'</div>';
+      }).join('')+'</div>';
+    }
+  }
+}
+
+// ── Animated counter ──────────────────────────────────────────────
+function animateCounter(el, target, suffix, duration){
+  if(!el) return;
+  suffix = suffix||'';
+  duration = duration||1800;
+  var start=0, step=Math.ceil(target/60), current=0;
+  var interval=setInterval(function(){
+    current+=step;
+    if(current>=target){current=target;clearInterval(interval);}
+    el.textContent=current.toLocaleString()+suffix;
+  }, duration/60);
+}
+
+function initStatsCounters(){
+  var counters=[
+    {id:'sc-fundacion', target:1978, suffix:''},
+    {id:'sc-estudiantes',target:850, suffix:'+'},
+    {id:'sc-maestros',  target:35,  suffix:'+'},
+    {id:'sc-graduacion',target:98,  suffix:'%'}
+  ];
+  counters.forEach(function(c){
+    var el=document.getElementById(c.id);
+    if(el) animateCounter(el,c.target,c.suffix);
+  });
+}
+
+// Trigger stat counters when home page is in view
+(function(){
+  var _statsInited=false;
+  document.addEventListener('scroll',function(){
+    if(_statsInited) return;
+    var el=document.getElementById('sc-estudiantes');
+    if(!el) return;
+    var rect=el.getBoundingClientRect();
+    if(rect.top<window.innerHeight){
+      _statsInited=true;
+      initStatsCounters();
+    }
+  });
+  // Also run once after page load with a delay
+  setTimeout(function(){
+    if(!_statsInited&&document.getElementById('sc-estudiantes')){
+      _statsInited=true;
+      initStatsCounters();
+    }
+  },2000);
 })();
 
 // ── FIX BARRA BLANCA — ocultar divs vacíos del home ──

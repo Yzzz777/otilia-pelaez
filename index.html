@@ -725,6 +725,80 @@
             </div>
         </div>
 
+        <!-- ═══ VIDA ESCOLAR GALLERY STRIP ═══ -->
+        <div id="vida-escolar-section" style="background:linear-gradient(135deg,#0d1f3e,#1a2a50);padding:50px 20px;overflow:hidden;">
+            <div style="max-width:1100px;margin:0 auto;">
+                <div style="text-align:center;margin-bottom:36px;">
+                    <h2 style="font-family:'Playfair Display',serif;color:white;font-size:30px;margin:0 0 10px;">🎒 Vida <span style="color:var(--gold);">Escolar</span></h2>
+                    <p style="color:rgba(255,255,255,0.6);font-size:14px;">Momentos que hacen única nuestra comunidad educativa</p>
+                </div>
+                <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;scrollbar-width:thin;scrollbar-color:var(--gold) transparent;">
+                    <div class="vida-card">
+                        <div style="font-size:42px;margin-bottom:12px;">📖</div>
+                        <h4>Clases Dinámicas</h4>
+                        <p>Aprendizaje activo y participativo en cada aula</p>
+                    </div>
+                    <div class="vida-card">
+                        <div style="font-size:42px;margin-bottom:12px;">⚽</div>
+                        <h4>Deportes</h4>
+                        <p>Torneos y actividades físicas para el desarrollo integral</p>
+                    </div>
+                    <div class="vida-card">
+                        <div style="font-size:42px;margin-bottom:12px;">🎨</div>
+                        <h4>Arte y Cultura</h4>
+                        <p>Expresión creativa y actividades culturales del centro</p>
+                    </div>
+                    <div class="vida-card">
+                        <div style="font-size:42px;margin-bottom:12px;">🔬</div>
+                        <h4>Ciencias</h4>
+                        <p>Laboratorio y experimentos para explorar el mundo</p>
+                    </div>
+                    <div class="vida-card">
+                        <div style="font-size:42px;margin-bottom:12px;">🎭</div>
+                        <h4>Teatro y Música</h4>
+                        <p>Actos culturales y presentaciones artísticas anuales</p>
+                    </div>
+                    <div class="vida-card">
+                        <div style="font-size:42px;margin-bottom:12px;">🌿</div>
+                        <h4>Medio Ambiente</h4>
+                        <p>Cuidado del entorno y proyectos ecológicos escolares</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ ESTADÍSTICAS DEL CENTRO ═══ -->
+        <div style="background:linear-gradient(135deg,#f5f0e8,#fffbeb);padding:60px 20px;border-top:3px solid var(--gold);">
+            <div style="max-width:1100px;margin:0 auto;">
+                <div style="text-align:center;margin-bottom:40px;">
+                    <h2 style="font-family:'Playfair Display',serif;color:var(--navy);font-size:30px;margin:0 0 10px;">📊 Estadísticas del <span style="color:var(--gold);">Centro</span></h2>
+                    <p style="color:#888;font-size:14px;">Números que hablan de nuestra trayectoria y compromiso</p>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
+                    <div class="stats-counter" data-target="1978" data-suffix="">
+                        <div class="stats-icon">📅</div>
+                        <div class="stats-num" id="sc-fundacion">1978</div>
+                        <div class="stats-label">Año de Fundación</div>
+                    </div>
+                    <div class="stats-counter" data-target="850" data-suffix="+">
+                        <div class="stats-icon">🎓</div>
+                        <div class="stats-num" id="sc-estudiantes">0</div>
+                        <div class="stats-label">Estudiantes Activos</div>
+                    </div>
+                    <div class="stats-counter" data-target="35" data-suffix="+">
+                        <div class="stats-icon">👨‍🏫</div>
+                        <div class="stats-num" id="sc-maestros">0</div>
+                        <div class="stats-label">Docentes Titulados</div>
+                    </div>
+                    <div class="stats-counter" data-target="98" data-suffix="%">
+                        <div class="stats-icon">📝</div>
+                        <div class="stats-num" id="sc-graduacion">0</div>
+                        <div class="stats-label">Tasa de Graduación</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ═══ CONTACTO RÁPIDO ═══ -->
         <div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:60px 20px;" id="contacto-section">
             <div style="max-width:900px;margin:0 auto;">
@@ -1306,6 +1380,7 @@
                 <button class="dash-tab" data-section="dash-enfermeria" onclick="showDashSection('dash-enfermeria',this);renderEnferAdmin()">🏥 Enfermería</button>
                 <button class="dash-tab" data-section="dash-notifs" onclick="showDashSection('dash-notifs',this);renderNotifsAdmin()">🔔 Notificaciones</button>
                 <button class="dash-tab" data-section="dash-cuentas-est" onclick="showDashSection('dash-cuentas-est',this);renderAdminCuentasEst()">🔑 Cuentas</button>
+                <button class="dash-tab" data-section="dash-pasantias" onclick="showDashSection('dash-pasantias',this);renderPasantias();renderAplicaciones()">🏢 Pasantías</button>
                 <button class="dash-tab" data-section="dash-perfil-admin" onclick="showDashSection('dash-perfil-admin',this);fillAdminPerfil(APP.currentUser)">👤 Mi Perfil</button>
             </div>
         </div>
@@ -1478,6 +1553,46 @@
                     <div id="admin-cuentas-est-list"><p style="color:#888;">Cargando...</p></div>
                 </div>
             </div>
+            <!-- PASANTÍAS -->
+            <div id="dash-pasantias" class="dash-section">
+                <div class="panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+                        <div>
+                            <h3 style="margin:0;">🏢 Gestión de Pasantías</h3>
+                            <p style="color:#888;font-size:13px;margin:4px 0 0;">Ofertas de pasantías y aplicaciones de estudiantes.</p>
+                        </div>
+                        <button class="btn btn-gold" onclick="openModal('modal-pasantia');document.getElementById('pasantia-modal-title').textContent='➕ Nueva Pasantía';document.getElementById('pasantia-edit-id').value='';">➕ Nueva Pasantía</button>
+                    </div>
+                    <!-- KPI Row -->
+                    <div class="cards-row" style="margin-bottom:20px;">
+                        <div class="kpi-card"><div class="kpi-icon">🏢</div><div><div class="kpi-num" id="kpi-pas-total">0</div><div class="kpi-label">Pasantías</div></div></div>
+                        <div class="kpi-card" style="border-left-color:var(--success);"><div class="kpi-icon">💼</div><div><div class="kpi-num" id="kpi-pas-plazas">0</div><div class="kpi-label">Plazas Disp.</div></div></div>
+                        <div class="kpi-card" style="border-left-color:var(--info);"><div class="kpi-icon">📋</div><div><div class="kpi-num" id="kpi-pas-pendientes">0</div><div class="kpi-label">Aplicaciones Pend.</div></div></div>
+                        <div class="kpi-card" style="border-left-color:var(--gold);"><div class="kpi-icon">✅</div><div><div class="kpi-num" id="kpi-pas-completadas">0</div><div class="kpi-label">Completadas</div></div></div>
+                    </div>
+                    <!-- Search + Table -->
+                    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+                        <input type="text" id="pas-search" placeholder="Buscar empresa, área..." style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Nunito',sans-serif;" oninput="renderPasantias()">
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead><tr><th>Empresa</th><th>Área</th><th>Plazas</th><th>Período</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <tbody id="pas-table-body"></tbody>
+                        </table>
+                    </div>
+                    <!-- Aplicaciones sub-section -->
+                    <div style="margin-top:32px;border-top:2px solid var(--border);padding-top:24px;">
+                        <h4 style="color:var(--navy);margin:0 0 14px;">📋 Aplicaciones de Estudiantes</h4>
+                        <div style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead><tr><th>Estudiante</th><th>Grado</th><th>Pasantía</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                                <tbody id="aplicaciones-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- GALERÍA -->
             <div id="dash-galeria" class="dash-section">
                 <div class="panel">
@@ -3200,6 +3315,7 @@
             <button class="est-tab reglamento-tab" id="est-reg-tab" data-est="est-reglamento" onclick="showEstudianteSection('est-reglamento');renderReglamento('est-reg-content')" style="display:none;">📜 Reglamento</button>
             <button class="est-tab" data-est="est-calendario" onclick="showEstudianteSection('est-calendario');renderCalendarioPortal('est-cal-list','estudiante')">🗓️ Calendario</button>
             <button class="est-tab" data-est="est-notifs" onclick="showEstudianteSection('est-notifs');renderUserNotifs('est-notifs-list')">🔔 Notifs<span id="notif-badge-count" style="display:none;background:#ef4444;color:white;border-radius:50%;font-size:10px;font-weight:700;padding:1px 5px;margin-left:4px;">0</span></button>
+            <button class="est-tab" data-est="est-pasantias" onclick="showEstudianteSection('est-pasantias');renderPasantiasEstudiante()">🏢 Pasantías</button>
         </div>
 
 
@@ -3394,6 +3510,23 @@
                             <div class="form-group"><label>Confirmar</label><input type="password" id="est-pass-confirm" placeholder="Confirmar"></div>
                         </div>
                         <button class="btn btn-gold" onclick="changeEstPass()">🔒 Cambiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASANTÍAS ESTUDIANTE -->
+        <div id="est-pasantias" class="est-section">
+            <div style="max-width:900px;margin:0 auto;padding:18px;">
+                <div class="panel">
+                    <h3>🏢 Pasantías Disponibles</h3>
+                    <p style="color:#888;font-size:13px;margin-bottom:18px;">Consulta las oportunidades de pasantía abiertas y postúlate.</p>
+                    <div id="est-pasantias-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:14px;">
+                        <p style="color:#888;font-size:13px;text-align:center;padding:20px;grid-column:1/-1;">No hay pasantías disponibles en este momento.</p>
+                    </div>
+                    <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px;">
+                        <h4 style="color:var(--navy);margin-bottom:12px;">📋 Mis Aplicaciones</h4>
+                        <div id="est-mis-aplicaciones"></div>
                     </div>
                 </div>
             </div>
@@ -4784,6 +4917,38 @@
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
                 <button class="btn btn-outline" onclick="closeComunicadoModal()">Cancelar</button>
                 <button class="btn btn-gold" onclick="saveComunicado()">✅ Publicar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== MODAL PASANTÍA =================== -->
+    <div id="modal-pasantia" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-pasantia')">
+        <div class="modal-box" style="max-width:560px;">
+            <div class="modal-header">
+                <h3 id="pasantia-modal-title">➕ Nueva Pasantía</h3>
+                <button class="modal-close" onclick="closeModal('modal-pasantia')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pasantia-edit-id">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="form-group"><label>Empresa *</label><input type="text" id="pas-empresa" placeholder="Nombre de la empresa" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;"></div>
+                    <div class="form-group"><label>Área *</label><input type="text" id="pas-area" placeholder="Ej: Informática, Contabilidad" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;"></div>
+                    <div class="form-group"><label>Plazas disponibles *</label><input type="number" id="pas-plazas" min="1" placeholder="Ej: 3" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;"></div>
+                    <div class="form-group"><label>Estado</label>
+                        <select id="pas-estado" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;">
+                            <option value="activa">Activa</option>
+                            <option value="cerrada">Cerrada</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Fecha inicio</label><input type="date" id="pas-inicio" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;"></div>
+                    <div class="form-group"><label>Fecha fin</label><input type="date" id="pas-fin" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;"></div>
+                </div>
+                <div class="form-group"><label>Descripción</label><textarea id="pas-descripcion" rows="3" placeholder="Describe la pasantía..." style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;resize:vertical;"></textarea></div>
+                <div class="form-group"><label>Requisitos</label><textarea id="pas-requisitos" rows="2" placeholder="Requisitos del estudiante..." style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;resize:vertical;"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('modal-pasantia')">Cancelar</button>
+                <button class="btn btn-gold" onclick="savePasantia()">💾 Guardar</button>
             </div>
         </div>
     </div>
