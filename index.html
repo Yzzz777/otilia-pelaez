@@ -78,51 +78,74 @@
 
     <!-- ===================== LOGIN ===================== -->
     <div id="login-screen">
-        <div class="login-card" style="max-width:380px;padding:28px 30px;">
-            <div class="login-logo">
-                <div class="login-emblem"><img src="imagenes/logo_otilia_pelaez.png" alt="Logo"></div>
-                <h2>Centro Educativo Otilia Peláez</h2>
-                <p>Sistema de Gestión Educativa · Sabana Perdida, SDN</p>
-            </div>
-            <div id="login-form-wrap">
-                <div id="login-alert" class="alert alert-error" style="display:none;"></div>
-                <!-- Saved account chips -->
-                <div id="saved-accounts-bar" style="display:none;margin-bottom:12px;"></div>
-                <div class="form-group"><label>Correo Electrónico</label><input type="email" id="login-email" placeholder="tucorreo@gmail.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-                <div class="form-group"><label>Contraseña</label>
-                    <div style="position:relative;">
-                        <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:40px;">
-                        <button type="button" onclick="togglePassVis('login-password',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#888;">👁</button>
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-                    <input type="checkbox" id="remember-me" style="width:16px;height:16px;cursor:pointer;accent-color:var(--gold);">
-                    <label for="remember-me" style="font-size:13px;color:#555;cursor:pointer;margin:0;">Recuérdame en este dispositivo</label>
-                </div>
-                <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px;margin-bottom:10px;" onclick="doLogin()">Iniciar Sesión →</button>
-                <button class="btn btn-outline" style="width:100%;margin-bottom:8px;" onclick="showRegister()">📝 Registrarse (Padres/Tutores)</button>
-                <button class="btn btn-outline" style="width:100%;background:rgba(22,33,62,0.06);" onclick="openProfesorModal()">👨‍🏫 Acceso Maestros</button>
-            </div>
-            <div id="register-form-wrap" style="display:none;">
-                <div id="reg-alert" class="alert alert-error" style="display:none;"></div>
-                <h3 style="font-family:'Playfair Display',serif;color:var(--navy);margin-bottom:14px;font-size:17px;">📝 Registrarse (Solo Padres y Tutores)</h3>
-                <p style="font-size:12px;color:#888;margin-bottom:12px;background:#f8f9fa;padding:8px 12px;border-radius:8px;border-left:3px solid var(--gold);">Los estudiantes reciben su cuenta del administrador del sistema.</p>
-                <div class="form-group"><label>Soy *</label><select id="reg-tipo" onchange="checkRegTipo()"><option value="padre">👪 Padre</option><option value="tutor">🤝 Tutor</option></select></div>
-                <div class="form-row">
-                    <div class="form-group"><label>Nombre *</label><input type="text" id="reg-nombre" placeholder="Juan"></div>
-                    <div class="form-group"><label>Apellido *</label><input type="text" id="reg-apellido" placeholder="Pérez"></div>
-                </div>
-                <div class="form-group"><label>Correo *</label><input type="email" id="reg-email" placeholder="tucorreo@gmail.com"></div>
-                <div class="form-group"><label>Contraseña *</label><input type="password" id="reg-pass" placeholder="••••••••"></div>
-                <div id="reg-padre-section">
-                    <div class="form-group"><label>Nombre de su Hijo/a *</label><input type="text" id="reg-hijo" placeholder="Nombre del estudiante"></div>
-                    <div class="form-group"><label>Su Teléfono</label><input type="tel" id="reg-tel-padre" placeholder="(809) 000-0000"></div>
-                </div>
-                <button class="btn btn-gold" style="width:100%;margin-bottom:8px;" onclick="doRegister()">✅ Crear Cuenta</button>
-                <button class="btn btn-outline" style="width:100%;" onclick="showLogin()">← Volver al Login</button>
-            </div>
-            <p style="text-align:center;margin-top:14px;font-size:11px;color:#ccc;">© 2025 C.E. Otilia Peláez · Sabana Perdida, SDN</p>
+      <div class="login-bg-overlay"></div>
+      <div class="login-card">
+        <!-- Logo + Título -->
+        <div class="login-logo">
+          <div class="login-emblem">
+            <img src="imagenes/logo_otilia_pelaez.png" alt="Logo" onerror="this.style.display='none'">
+          </div>
+          <h2>Centro Educativo<br><span>Otilia Peláez</span></h2>
+          <p>Sistema de Gestión Educativa · Sabana Perdida, SDN</p>
         </div>
+
+        <!-- LOGIN FORM -->
+        <div id="login-form-wrap">
+          <div id="login-alert" class="login-alert-box" style="display:none;"></div>
+          <div id="saved-accounts-bar" style="display:none;margin-bottom:12px;"></div>
+
+          <div class="login-field">
+            <span class="login-field-icon">✉️</span>
+            <input type="email" id="login-email" placeholder="Correo electrónico" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="email">
+          </div>
+          <div class="login-field">
+            <span class="login-field-icon">🔒</span>
+            <input type="password" id="login-password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password" style="padding-right:42px;">
+            <button type="button" class="pass-vis-btn" onclick="togglePassVis('login-password',this)">👁</button>
+          </div>
+
+          <div class="login-remember">
+            <label>
+              <input type="checkbox" id="remember-me">
+              <span>Recuérdame</span>
+            </label>
+            <span class="login-forgot" onclick="showForgotHelp()">¿Olvidaste tu contraseña?</span>
+          </div>
+
+          <button class="login-btn-main" onclick="doLogin()">
+            <span>Iniciar Sesión</span> <span>→</span>
+          </button>
+
+          <div class="login-divider"><span>o</span></div>
+
+          <div class="login-alt-btns">
+            <button onclick="showRegister()">📝 Registro de Padres/Tutores</button>
+            <button onclick="openProfesorModal()">👨‍🏫 Acceso Maestros</button>
+          </div>
+        </div>
+
+        <!-- REGISTRO FORM -->
+        <div id="register-form-wrap" style="display:none;">
+          <div id="reg-alert" class="login-alert-box" style="display:none;"></div>
+          <h3 class="reg-title">📝 Registro — Padres y Tutores</h3>
+          <p class="reg-note">Los estudiantes reciben su cuenta del administrador.</p>
+          <div class="form-group"><label>Soy *</label><select id="reg-tipo" onchange="checkRegTipo()"><option value="padre">👪 Padre/Madre</option><option value="tutor">🤝 Tutor/a</option></select></div>
+          <div class="form-row">
+            <div class="form-group"><label>Nombre *</label><input type="text" id="reg-nombre" placeholder="Juan"></div>
+            <div class="form-group"><label>Apellido *</label><input type="text" id="reg-apellido" placeholder="Pérez"></div>
+          </div>
+          <div class="form-group"><label>Correo *</label><input type="email" id="reg-email" placeholder="tucorreo@gmail.com"></div>
+          <div class="form-group"><label>Contraseña *</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+          <div id="reg-padre-section">
+            <div class="form-group"><label>Nombre del Hijo/a *</label><input type="text" id="reg-hijo" placeholder="Nombre del estudiante"></div>
+            <div class="form-group"><label>Teléfono</label><input type="tel" id="reg-tel-padre" placeholder="(809) 000-0000"></div>
+          </div>
+          <button class="login-btn-main" onclick="doRegister()">✅ Crear Cuenta</button>
+          <button class="login-btn-back" onclick="showLogin()">← Volver al inicio</button>
+        </div>
+
+        <p class="login-footer">© 2025 C.E. Otilia Peláez · Sabana Perdida, SDN</p>
+      </div>
     </div>
 
     <!-- Banner de cumpleaños -->

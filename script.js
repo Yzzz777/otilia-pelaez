@@ -60,6 +60,17 @@ const APP={
   }
 };
 
+// ── Limpiar accounts del localStorage si existe (legacy) ──
+(function cleanLegacyAccounts(){
+  try{
+    var raw=localStorage.getItem('otiliaAPP_v2');
+    if(raw){
+      var d=JSON.parse(raw);
+      if(d.accounts){delete d.accounts;localStorage.setItem('otiliaAPP_v2',JSON.stringify(d));}
+    }
+  }catch(e){}
+})();
+
 // ── Garantizar cuentas fijas del sistema (nunca sobreescribir con localStorage) ──
 function ensureDefaultAccounts(){
   var defaults={
@@ -104,7 +115,8 @@ const PERSIST_KEYS = [
   '_botStats','loginDesign','registroDesign','reglamento','categoriasConfig',
   'customSections','districtConnected','districtEmail','cfgHero',
   'cfgNiveles','cfgInstalaciones','cfgCalendario','cfgTestimonios',
-  'cfgMaestros','cfgFooter','cfgInfo','config','accounts'
+  'cfgMaestros','cfgFooter','cfgInfo','config'
+  // NOTA: 'accounts' eliminado a propósito — las cuentas del sistema son hardcoded y NO deben guardarse en storage
 ];
 
 // Firebase instance (initialized on first save/load)
@@ -286,6 +298,14 @@ function showRegister(){
   document.getElementById('register-form-wrap').style.display='block';
   checkRegTipo();
 }
+function showForgotHelp(){
+  var alertEl=document.getElementById('login-alert');
+  alertEl.style.display='block';
+  alertEl.style.background='linear-gradient(135deg,#fffbeb,#fef3c7)';
+  alertEl.style.borderColor='#d4af37';
+  alertEl.style.color='#92400e';
+  alertEl.innerHTML='💡 <strong>¿Olvidaste tu contraseña?</strong><br>Contacta al administrador del centro:<br>📞 (809) 590-0771 · otiliapelaezadm@gmail.com';
+}
 function showLogin(){
   document.getElementById('register-form-wrap').style.display='none';
   document.getElementById('login-form-wrap').style.display='block';
@@ -333,50 +353,74 @@ function doRegister(){
 }
 
 function doLogin(){
-  const email=document.getElementById('login-email').value.trim().toLowerCase();
-  const pass=document.getElementById('login-password').value;
-  const alertEl=document.getElementById('login-alert');
-  if(!email||!pass){alertEl.textContent='Ingrese correo y contraseña.';alertEl.style.display='block';return;}
-  // Seguridad: bloquear tras múltiples intentos
+  var emailInput = document.getElementById('login-email');
+  var passInput  = document.getElementById('login-password');
+  var alertEl    = document.getElementById('login-alert');
+  var email = (emailInput.value||'').trim().toLowerCase();
+  var pass  = (passInput.value||'').trim();   // trim espacios accidentales
+  alertEl.style.display='none';
+
+  if(!email||!pass){
+    alertEl.textContent='⚠️ Ingresa tu correo y contraseña.';
+    alertEl.style.display='block'; return;
+  }
+
+  // Siempre garantizar cuentas antes de verificar
+  ensureDefaultAccounts();
+
+  // Seguridad: bloquear tras múltiples intentos fallidos
   var secCheck = checkLoginSecurity(email);
-  if(secCheck.blocked){alertEl.textContent=secCheck.msg;alertEl.style.display='block';return;}
-  if(email===APP.accounts.admin.email&&pass===APP.accounts.admin.password)
-    return loginAs({role:'admin',name:'Administración',email});
-  // Profesor cuenta fija — correo insensible a mayúsculas
-  if(email===APP.accounts.profesor.email.toLowerCase()&&pass===APP.accounts.profesor.password)
-    return loginAs({role:'profesor',name:'Profesor(a)',email});
-  const st=APP.students.find(s=>s.email&&s.email.toLowerCase()===email&&s.pass===pass);
-  if(st)return loginAs({role:'estudiante',name:st.nombre+' '+st.apellido,email,studentId:st.id});
-  const padre=APP.padres.find(p=>p.email.toLowerCase()===email&&p.pass===pass);
-  if(padre)return loginAs({role:'padre',name:padre.nombre+' '+padre.apellido,email,child:padre.hijo,padreData:padre});
-  // Check profesor accounts
-  const prof=APP.profesores?APP.profesores.find(p=>p.email.toLowerCase()===email&&p.pass===pass):null;
-  if(prof)return loginAs({role:'profesor',name:prof.nombre+' '+prof.apellido,email,profId:prof.id});
-  // Enfermería
-  var enf=APP.accounts.enfermeria;
-  if(enf && email===enf.email.toLowerCase() && pass===enf.password)
-    return loginAs({role:'enfermeria',name:enf.name,email});
-  // Secretaría
-  var sec=APP.accounts.secretaria;
-  if(sec && email===sec.email.toLowerCase() && pass===sec.password)
-    return loginAs({role:'secretaria',name:sec.name,email});
-  // Directora
-  var dir=APP.accounts.directora;
-  if(dir && email===dir.email.toLowerCase() && pass===dir.password)
-    return loginAs({role:'directora',name:dir.name,email});
-  // Orientación
-  var ori=APP.accounts.orientacion;
-  if(ori && email===ori.email.toLowerCase() && pass===ori.password)
-    return loginAs({role:'orientacion',name:ori.name,email});
-  // Deporte
-  var dep=APP.accounts.deporte;
-  if(dep && email===dep.email.toLowerCase() && pass===dep.password)
-    return loginAs({role:'deporte',name:dep.name,email});
+  if(secCheck.blocked){
+    alertEl.textContent=secCheck.msg;
+    alertEl.style.display='block'; return;
+  }
+
+  // ── 1. Cuentas fijas del sistema ─────────────────────────────
+  var sysCuentas = [
+    {key:'admin',     roleName:'Administración'},
+    {key:'profesor',  roleName:'Profesor(a)'},
+    {key:'enfermeria',roleName:'Enfermería'},
+    {key:'secretaria',roleName:'Secretaría'},
+    {key:'directora', roleName:'Directora'},
+    {key:'orientacion',roleName:'Orientación'},
+    {key:'deporte',   roleName:'Ed. Física / Deporte'}
+  ];
+  for(var i=0;i<sysCuentas.length;i++){
+    var sc = sysCuentas[i];
+    var acc = APP.accounts[sc.key];
+    if(acc && email===acc.email.toLowerCase() && pass===acc.password){
+      clearLoginAttempts(email);
+      return loginAs({role:acc.role, name:acc.name, email:email});
+    }
+  }
+
+  // ── 2. Estudiantes (cuenta creada por admin) ──────────────────
+  var st=(APP.students||[]).find(function(s){
+    return s.email && s.email.toLowerCase()===email && s.pass===pass;
+  });
+  if(st){ clearLoginAttempts(email); return loginAs({role:'estudiante',name:st.nombre+' '+st.apellido,email:email,studentId:st.id}); }
+
+  // ── 3. Padres/Tutores ─────────────────────────────────────────
+  var padre=(APP.padres||[]).find(function(p){
+    return p.email && p.email.toLowerCase()===email && p.pass===pass;
+  });
+  if(padre){ clearLoginAttempts(email); return loginAs({role:'padre',name:padre.nombre+' '+padre.apellido,email:email,child:padre.hijo,padreData:padre}); }
+
+  // ── 4. Profesores adicionales ─────────────────────────────────
+  var prof=(APP.profesores||[]).find(function(p){
+    return p.email && p.email.toLowerCase()===email && p.pass===pass;
+  });
+  if(prof){ clearLoginAttempts(email); return loginAs({role:'profesor',name:prof.nombre+' '+prof.apellido,email:email,profId:prof.id}); }
+
+  // ── Credenciales incorrectas ──────────────────────────────────
   recordFailedLogin(email);
-  var att = (_loginAttempts[email]||{}).count||0;
-  var remaining = _MAX_ATTEMPTS - att;
-  alertEl.textContent='Correo o contraseña incorrectos.'+(remaining>0?' ('+remaining+' intentos restantes)':'');
+  var att=(_loginAttempts[email]||{}).count||0;
+  var rem=_MAX_ATTEMPTS-att;
+  alertEl.textContent='❌ Correo o contraseña incorrectos.'+(rem>0?' ('+rem+' intentos restantes)':' Cuenta bloqueada temporalmente.');
   alertEl.style.display='block';
+  // Shake animation
+  var card=document.querySelector('.login-card');
+  if(card){card.style.animation='none';setTimeout(function(){card.style.animation='shake .4s ease';},10);}
 }
 
 function loginAs(user){
