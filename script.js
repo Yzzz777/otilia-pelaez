@@ -805,56 +805,14 @@ function showPage(id){
   }
 }
 
-function renderRoleHomeSection(){
-  const el=document.getElementById('home-role-panel');
-  if(!el||!APP.currentUser)return;
-  const role=APP.currentUser.role;
-  const name=APP.currentUser.name||'';
-  const bg='background:linear-gradient(135deg,#1a2a50,#0d1f3e);padding:26px 20px;border-top:3px solid var(--gold);';
-  const wrap='<div style="max-width:1100px;margin:0 auto;">';
-  const grid='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:11px;">';
-  const card=([fn,ico,label])=>`<div class="home-quick-card" onclick="${fn}">${ico}<span>${label}</span></div>`;
-  const header=(ico,titulo)=>`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;"><h3 style="color:var(--gold);font-family:'Playfair Display',serif;font-size:19px;margin:0;">${ico} Bienvenido/a, ${name}</h3><span style="color:rgba(255,255,255,0.6);font-size:13px;">${titulo}</span></div>`;
-
-  if(role==='admin'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('🏫','Panel de Administración')}${grid}`+
-    [["showPage('admin')","⚙️","Panel Admin"],["showAdminSection('dash-estudiantes')","🎓","Estudiantes"],["showAdminSection('dash-inscripciones')","📝","Inscripciones"],["showAdminSection('dash-notas')","📋","Notas"],["showAdminSection('dash-ausencias')","📅","Ausencias"],["showAdminSection('dash-pagos')","💰","Pagos"],["showAdminSection('dash-calendario')","🗓️","Calendario"],["showAdminSection('dash-notifs')","🔔","Notificar"],["showAdminSection('dash-anuncios')","📢","Anuncios"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='profesor'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('👨‍🏫','Portal del Maestro')}${grid}`+
-    [["showPage('profesor')","👨‍🏫","Mi Panel"],["showPage('profesor');showProfeSection('profe-notas',null)","📋","Notas"],["showPage('profesor');showProfeSection('profe-ausencias',null)","📅","Ausencias"],["showPage('profesor');showProfeSection('profe-records',null)","📂","Récords"],["showPage('profesor');showProfeSection('profe-mensajes',null)","💬","Mensajes"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='estudiante'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('🎓','Portal del Estudiante')}${grid}`+
-    [["showPage('estudiante')","🎓","Mi Portal"],["showPage('estudiante');showEstudianteSection('est-notas')","📋","Mis Notas"],["showPage('estudiante');showEstudianteSection('est-perfil')","👤","Mi Perfil"],["showPage('anuncios')","📢","Anuncios"],["openModal('modal-reporte')","📨","Enviar Reporte"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='padre'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('👪','Portal de Padres')}${grid}`+
-    [["showPage('padre')","👪","Mi Portal"],["showPage('padre');showPadreSection('padre-notas')","📋","Notas del Hijo/a"],["showPage('padre');showPadreSection('padre-mensajes-section');renderMensajes()","💬","Mensajes"],["showPage('padre');showPadreSection('padre-inscripciones')","📝","Inscripciones"],["showPage('anuncios')","📢","Anuncios"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='enfermeria'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('🏥','Departamento de Enfermería')}${grid}`+
-    [["showPage('enfermeria')","🏥","Mi Panel"],["showPage('enfermeria');showEnferSection('enfer-registros');renderRegistrosEnfer()","📋","Consultas"],["openModal('modal-consulta');populateConsultaEstSelect()","➕","Nueva Consulta"],["showPage('enfermeria');showEnferSection('enfer-stock');renderStock()","💊","Stock"],["showPage('enfermeria');showEnferSection('enfer-estadisticas');renderEnferStats()","📊","Estadísticas"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='secretaria'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('🗂️','Portal de Secretaría')}${grid}`+
-    [["showPage('secretaria')","🗂️","Mi Portal"],["showPage('secretaria');showSecretariaSection('sec-inscripciones',null)","📝","Inscripciones"],["showPage('secretaria');showSecretariaSection('sec-estudiantes',null)","🎓","Estudiantes"],["showPage('inscripcion')","➕","Nueva Inscripción"],["showPage('anuncios')","📢","Anuncios"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='directora'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('👩‍💼','Portal de Dirección')}${grid}`+
-    [["showPage('directora')","👩‍💼","Mi Portal"],["showPage('directora');showDirectoraSection('dir-reportes',null)","📊","Reportes"],["showPage('directora');showDirectoraSection('dir-personal',null)","👥","Personal"],["showPage('directora');showDirectoraSection('dir-estadisticas',null)","📈","Estadísticas"],["showPage('anuncios')","📢","Anuncios"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='orientacion'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('🧭','Portal de Orientación')}${grid}`+
-    [["showPage('orientacion')","🧭","Mi Portal"],["showPage('orientacion');showOrientacionSection('ori-estudiantes',null)","🎓","Estudiantes"],["showPage('orientacion');showOrientacionSection('ori-casos',null)","📂","Casos"],["showPage('orientacion');showOrientacionSection('ori-recursos',null)","📚","Recursos"],["showPage('anuncios')","📢","Anuncios"]].map(card).join('')+
-    `</div></div></div>`;
-  } else if(role==='deporte'){
-    el.innerHTML=`<div style="${bg}">${wrap}${header('⚽','Ed. Física y Deportes')}${grid}`+
-    [["showPage('deporte')","⚽","Mi Portal"],["showPage('deporte');showDeporteSection('dep-equipos',null)","🏆","Equipos"],["showPage('deporte');showDeporteSection('dep-torneos',null)","🥇","Torneos"],["showPage('deporte');showDeporteSection('dep-notas',null)","📋","Notas"],["showPage('anuncios')","📢","Anuncios"]].map(card).join('')+
-    `</div></div></div>`;
-  } else {
-    el.innerHTML='';
-  }
+// renderRoleHomeSection first version (home-role-panel) — merged into the full version below (~line 1652)
+// This stub fills home-role-panel with the same content
+function renderRoleHomePanelLegacy(){
+  var panelEl=document.getElementById('home-role-panel');
+  if(!panelEl||!APP.currentUser) return;
+  // Mirror content from the main section
+  var mainEl=document.getElementById('home-role-section');
+  if(mainEl) panelEl.innerHTML=mainEl.innerHTML;
 }
 
 // ===== NOTIFICACIONES =====
@@ -1828,16 +1786,7 @@ function deleteGaleriaFoto(idx){
   toast('Foto eliminada','info');
 }
 
-function renderGaleriaPublic(){
-  var grid=document.getElementById('galeria-grid');if(!grid)return;
-  if(!APP.galeria||!APP.galeria.length){
-    grid.innerHTML='<div class="galeria-placeholder">📷<br><small>El admin puede agregar fotos desde el panel</small></div>';
-    return;
-  }
-  grid.innerHTML=APP.galeria.map(function(f,i){
-    return '<div class="galeria-img" onclick="openLightbox(\''+i+'\')"><img src="'+f.src+'" alt="Foto '+i+'"></div>';
-  }).join('');
-}
+// renderGaleriaPublic — full version defined below (~line 6405); this stub removed
 
 function openLightbox(idx){
   var f=APP.galeria[idx];if(!f)return;
@@ -2793,13 +2742,7 @@ function saveHorario(){
   if(count>0) toast('✅ Horario guardado y notificado a '+count+' estudiante(s) y sus padres','success');
   else toast('✅ Horario guardado — '+(grado==='general'?'General':grado),'success');
 }
-function addNotifToUser(email,msg){
-  if(!email)return;
-  if(!APP._userNotifs)APP._userNotifs={};
-  if(!APP._userNotifs[email])APP._userNotifs[email]=[];
-  APP._userNotifs[email].unshift({msg:msg,fecha:new Date().toLocaleDateString('es-DO'),leido:false});
-  if(APP.currentUser&&APP.currentUser.email===email) addNotification(msg);
-}
+// addNotifToUser is defined below (line ~4831) — this duplicate removed
 
 function resetHorario(){
   if(!confirm('¿Restablecer el horario por defecto para este grado?'))return;
@@ -2836,7 +2779,7 @@ function checkRegGrado(){
   if(carreraWrap)carreraWrap.style.display=esBachillerato?'block':'none';
   checkPadreEmailLink();
 }
-function checkSecundaria(){}
+// checkSecundaria defined above — duplicate removed
 
 function checkStGrado(){}
 
@@ -6451,28 +6394,27 @@ function saveEnferNombre(){
 
 // ── Galería Pública ──────────────────────────────────────────────
 function renderGaleriaPublic(){
-  var grid  = document.getElementById('galeria-public-grid');
+  // Try both possible IDs (public grid and admin grid)
+  var grid  = document.getElementById('galeria-public-grid') || document.getElementById('galeria-grid');
   var empty = document.getElementById('galeria-public-empty');
   if(!grid) return;
   var items = (APP.galeria||[]).filter(function(g){ return g.visible!==false; });
   if(!items.length){
-    grid.innerHTML=''; if(empty) empty.style.display='block'; return;
+    grid.innerHTML='<div class="galeria-placeholder" style="text-align:center;padding:40px;color:#bbb;"><div style="font-size:40px;margin-bottom:10px;">📷</div><p>El admin puede agregar fotos desde el panel</p></div>';
+    if(empty) empty.style.display='block';
+    return;
   }
   if(empty) empty.style.display='none';
-  grid.innerHTML = items.map(function(g){
-    return '<div style="border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.1);background:white;">'
-    card.style.cssText = 'border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.1);background:white;transition:transform .2s;cursor:pointer;';
-    card.onmouseover = function(){ this.style.transform='scale(1.03)'; };
-    card.onmouseout  = function(){ this.style.transform='scale(1)'; };
-    var imgHtml = g.img
-      ? '<img src="'+g.img+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
-      : '<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;">🖼️</div>';
-    card.innerHTML = '<div style="height:180px;background:#eee;overflow:hidden;">'+imgHtml+'</div>'
+  grid.innerHTML = items.map(function(g, i){
+    var imgHtml = (g.img||g.src)
+      ? '<img src="'+(g.img||g.src)+'" style="width:100%;height:180px;object-fit:cover;" loading="lazy">'
+      : '<div style="height:180px;display:flex;align-items:center;justify-content:center;font-size:40px;background:#f0f0f0;">🖼️</div>';
+    return '<div style="border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.1);background:white;transition:transform .2s;cursor:pointer;" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'" onclick="openLightbox('+i+')">'
+      +imgHtml
       +'<div style="padding:12px;">'
       +'<div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px;">'+(g.titulo||'')+'</div>'
       +(g.desc ? '<div style="font-size:12px;color:#666;">'+g.desc+'</div>' : '')
-      +'</div>';
-    return card.outerHTML;
+      +'</div></div>';
   }).join('');
 }
 
@@ -6751,7 +6693,7 @@ if(!APP.docentesDestacados)APP.docentesDestacados=[];
 
 function renderNoticiasPublicas(){var g=document.getElementById('noticias-publicas-grid');if(!g)return;var n=APP.noticias||[];if(!n.length){g.innerHTML='<div style="text-align:center;padding:40px;color:#bbb;grid-column:1/-1;"><div style="font-size:40px;margin-bottom:10px;">📰</div><p>No hay noticias aún.</p></div>';return;}g.innerHTML=n.map(function(x){return '<div class="noticia-card"><div class="noticia-img">'+(x.emoji||'📰')+'</div><div class="noticia-body"><div class="noticia-fecha">'+(x.fecha||'')+'</div><h4>'+(x.titulo||'')+'</h4><p>'+(x.resumen||'')+'</p></div></div>';}).join('');}
 function renderDocentesDestacados(){var g=document.getElementById('docentes-destacados-grid');if(!g)return;var d=APP.docentesDestacados||[];if(!d.length){g.innerHTML='<div style="text-align:center;padding:40px;color:#bbb;grid-column:1/-1;"><div style="font-size:40px;margin-bottom:10px;">👨‍🏫</div><p>El admin puede agregar docentes.</p></div>';return;}g.innerHTML=d.map(function(x){return '<div class="docente-card"><div class="docente-avatar">'+(x.emoji||'👨‍🏫')+'</div><div class="docente-nombre">'+(x.nombre||'')+'</div><div class="docente-materia">'+(x.materia||'')+'</div><div class="docente-grado">'+(x.grado||'')+'</div></div>';}).join('');}
-function renderComunicadosPublicos(){var l=document.getElementById('comunicados-publicos-list');if(!l)return;var c=APP.comunicados||[];if(!c.length){l.innerHTML='<div style="text-align:center;padding:40px;color:#bbb;"><div style="font-size:40px;margin-bottom:10px;">📋</div><p>No hay comunicados aún.</p></div>';return;}l.innerHTML=c.map(function(x){return '<div class="comunicado-card"><div class="comunicado-icon">'+(x.emoji||'📋')+'</div><div class="comunicado-body"><h4>'+(x.titulo||'')+'</h4><p>'+(x.texto||'')+'</p><div class="comunicado-fecha">'+(x.fecha||'')+'</div></div></div>';}).join('');}
+function renderComunicadosPublicos(){var l=document.getElementById('comunicados-publicos-list');if(!l)return;var c=APP.comunicados||[];if(!c.length){l.innerHTML='<div style="text-align:center;padding:40px;color:#bbb;"><div style="font-size:40px;margin-bottom:10px;">📋</div><p>No hay comunicados aún.</p></div>';return;}l.innerHTML=c.map(function(x){return '<div class="comunicado-card"><div class="comunicado-icon">'+(x.emoji||'📋')+'</div><div class="comunicado-body"><h4>'+(x.titulo||'')+'</h4><p>'+(x.cuerpo||x.texto||'')+'</p><div class="comunicado-fecha">'+(x.fecha||'')+'</div></div></div>';}).join('');}
 function renderFaqExtra(){var el=document.getElementById('faq-extra-list');if(!el)return;el.innerHTML=(APP.faqExtra||[]).map(function(x){return '<div class="faq-item" onclick="toggleFaq(this)"><div class="faq-pregunta">'+(x.pregunta||'')+' <span class="faq-arrow">▼</span></div><div class="faq-respuesta">'+(x.respuesta||'')+'</div></div>';}).join('');}
 setTimeout(function(){renderNoticiasPublicas();renderDocentesDestacados();renderComunicadosPublicos();renderFaqExtra();},1000);
 
@@ -6777,11 +6719,14 @@ function saveDocente(){var n=(document.getElementById('doc-nombre')||{}).value.t
 function deleteDocente(i){if(!confirm('¿Eliminar?'))return;(APP.docentesDestacados||[]).splice(i,1);persistSave();openAdminDocentes();renderDocentesDestacados();toast('Eliminado','info');}
 
 function openAdminComunicados(){
-    _oG('📋 Comunicados','<div id="comunicados-admin-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;min-height:20px;"></div><div style="background:#f8fafc;border-radius:12px;padding:14px;border:1.5px dashed #ddd;"><h4 style="margin:0 0 10px;font-size:14px;font-weight:800;color:#0f1c3a;">➕ Nuevo</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><div><label style="'+_esL+'">Ícono</label><input type="text" id="com-emoji" placeholder="📋" maxlength="4" style="'+_esI+'"></div><div><label style="'+_esL+'">Fecha</label><input type="date" id="com-fecha" style="'+_esI+'"></div></div><div style="margin-bottom:10px;"><label style="'+_esL+'">Título *</label><input type="text" id="com-titulo" placeholder="Asunto..." style="'+_esI+'"></div><div style="margin-bottom:12px;"><label style="'+_esL+'">Contenido *</label><textarea id="com-texto" rows="3" style="'+_esI+'resize:none;" placeholder="Texto..."></textarea></div><button class="btn btn-gold" onclick="saveComunicado()" style="width:100%;">💾 Publicar</button></div>');
-    _rL('comunicados-admin-list',APP.comunicados||[],function(x,i){return '<div style="background:white;border-radius:8px;padding:9px 13px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:10px;"><div><span style="font-size:16px;margin-right:6px;">'+(x.emoji||'📋')+'</span><strong style="font-size:13px;">'+(x.titulo||'')+'</strong><span style="color:#bbb;font-size:11px;margin-left:5px;">'+(x.fecha||'')+'</span></div>'+_delBtn('deleteComunicado',i)+'</div>';});
+    _oG('📋 Comunicados','<div id="comunicados-admin-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;min-height:20px;"></div><div style="background:#f8fafc;border-radius:12px;padding:14px;border:1.5px dashed #ddd;"><h4 style="margin:0 0 10px;font-size:14px;font-weight:800;color:#0f1c3a;">➕ Nuevo</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><div><label style="'+_esL+'">Ícono</label><input type="text" id="com-emoji" placeholder="📋" maxlength="4" style="'+_esI+'"></div><div><label style="'+_esL+'">Destino</label><select id="com-dest" style="'+_esI+'"><option value="todos">Todos</option><option value="estudiante">Estudiantes</option><option value="padre">Padres</option><option value="profesor">Profesores</option></select></div></div><div style="margin-bottom:10px;"><label style="'+_esL+'">Título *</label><input type="text" id="com-titulo" placeholder="Asunto..." style="'+_esI+'"></div><div style="margin-bottom:12px;"><label style="'+_esL+'">Contenido *</label><textarea id="com-cuerpo" rows="3" style="'+_esI+'resize:none;" placeholder="Texto del comunicado..."></textarea></div><button class="btn btn-gold" onclick="saveComunicado()" style="width:100%;">💾 Publicar</button></div>');
+    _rL('comunicados-admin-list',APP.comunicados||[],function(x,i){
+      var cid=x.id||i;
+      var delBtn='<button onclick="deleteComunicado(\''+(x.id||'')+'\','+i+')" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 9px;cursor:pointer;color:#dc2626;font-size:12px;font-weight:700;flex-shrink:0;">🗑️</button>';
+      return '<div style="background:white;border-radius:8px;padding:9px 13px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:10px;"><div><span style="font-size:16px;margin-right:6px;">'+(x.emoji||'📋')+'</span><strong style="font-size:13px;">'+(x.titulo||'')+'</strong><span style="color:#bbb;font-size:11px;margin-left:5px;">'+(x.fecha||'')+'</span></div>'+delBtn+'</div>';
+    });
 }
-function saveComunicado(){var t=(document.getElementById('com-titulo')||{}).value.trim(),x=(document.getElementById('com-texto')||{}).value.trim();if(!t||!x){toast('Título y contenido obligatorios','error');return;}if(!APP.comunicados)APP.comunicados=[];var f=(document.getElementById('com-fecha')||{}).value;APP.comunicados.unshift({titulo:t,texto:x,emoji:(document.getElementById('com-emoji')||{}).value.trim()||'📋',fecha:f?new Date(f+'T12:00').toLocaleDateString('es-DO'):''});persistSave();openAdminComunicados();renderComunicadosPublicos();toast('✅ Comunicado publicado','success');}
-function deleteComunicado(i){if(!confirm('¿Eliminar?'))return;(APP.comunicados||[]).splice(i,1);persistSave();openAdminComunicados();renderComunicadosPublicos();toast('Eliminado','info');}
+// saveComunicado is defined below (unified modal+admin version) — duplicate removed here
 
 function openAdminFaq(){
     _oG('❓ FAQ','<div id="faq-admin-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;min-height:20px;"></div><div style="background:#f8fafc;border-radius:12px;padding:14px;border:1.5px dashed #ddd;"><h4 style="margin:0 0 10px;font-size:14px;font-weight:800;color:#0f1c3a;">➕ Nueva Pregunta</h4><div style="margin-bottom:10px;"><label style="'+_esL+'">Pregunta *</label><input type="text" id="faq-p-in" placeholder="¿Cuándo son las inscripciones?" style="'+_esI+'"></div><div style="margin-bottom:12px;"><label style="'+_esL+'">Respuesta *</label><textarea id="faq-r-in" rows="3" style="'+_esI+'resize:none;" placeholder="Respuesta..."></textarea></div><button class="btn btn-gold" onclick="saveFaqItem()" style="width:100%;">💾 Agregar</button></div>');
@@ -7108,16 +7053,35 @@ function openComunicadoModal(){
 }
 function closeComunicadoModal(){ closeModal('modal-comunicado'); }
 function saveComunicado(){
-  var titulo=document.getElementById('com-titulo').value.trim();
-  var cuerpo=document.getElementById('com-cuerpo').value.trim();
-  var dest=document.getElementById('com-dest').value;
+  var tEl=document.getElementById('com-titulo');
+  var cEl=document.getElementById('com-cuerpo');
+  var dEl=document.getElementById('com-dest');
+  var eEl=document.getElementById('com-emoji');
+  var titulo=tEl?tEl.value.trim():'';
+  var cuerpo=cEl?cEl.value.trim():'';
+  var dest=dEl?dEl.value:'todos';
+  var emoji=eEl?eEl.value.trim():'📋';
   if(!titulo||!cuerpo){toast('Completa título y contenido','error');return;}
   if(!APP.comunicados) APP.comunicados=[];
-  APP.comunicados.unshift({id:'c'+Date.now(),titulo:titulo,cuerpo:cuerpo,dest:dest,fecha:new Date().toLocaleDateString('es-MX'),autor:APP.currentUser?APP.currentUser.nombre:'Sistema'});
+  APP.comunicados.unshift({
+    id:'c'+Date.now(),
+    titulo:titulo,
+    cuerpo:cuerpo,
+    texto:cuerpo,  // backward compat alias
+    dest:dest,
+    emoji:emoji||'📋',
+    fecha:new Date().toLocaleDateString('es-DO'),
+    autor:APP.currentUser?APP.currentUser.name:'Sistema'
+  });
   persistSave();
-  closeComunicadoModal();
-  toast('Comunicado publicado','success');
+  // Close modal if open, otherwise refresh admin panel
+  var modal=document.getElementById('modal-comunicado');
+  if(modal&&modal.classList.contains('open')) closeComunicadoModal();
+  var adminList=document.getElementById('comunicados-admin-list');
+  if(adminList) openAdminComunicados();
   renderComunicadosHome();
+  renderComunicadosPublicos();
+  toast('✅ Comunicado publicado','success');
 }
 function renderComunicadosHome(){
   var el=document.getElementById('comunicados-list-home');
@@ -7128,13 +7092,24 @@ function renderComunicadosHome(){
   if(adminBtn) adminBtn.style.display=canAdmin?'inline':'none';
   var list=(APP.comunicados||[]);
   if(!list.length){el.innerHTML='<p style="color:#888;text-align:center;padding:20px;">No hay comunicados publicados.</p>';return;}
-  el.innerHTML=list.map(c=>'<div class="comunicado-card"><div class="com-header"><span class="com-titulo">'+c.titulo+'</span><span class="com-fecha">'+c.fecha+'</span></div><p class="com-cuerpo">'+c.cuerpo+'</p><div class="com-footer"><span class="com-dest">Para: '+c.dest+'</span>'+(canAdmin?'<button class="tbl-btn btn-danger" onclick="deleteComunicado(\''+c.id+'\')">🗑️</button>':'')+'</div></div>').join('');
+  el.innerHTML=list.map(function(c,i){
+    var body=c.cuerpo||c.texto||'';
+    var delBtn=canAdmin?'<button class="tbl-btn btn-danger" onclick="deleteComunicado(\''+(c.id||'')+'\','+i+')">🗑️</button>':'';
+    return '<div class="comunicado-card"><div class="com-header"><span class="com-titulo">'+(c.emoji?c.emoji+' ':'')+c.titulo+'</span><span class="com-fecha">'+c.fecha+'</span></div><p class="com-cuerpo">'+body+'</p><div class="com-footer"><span class="com-dest">Para: '+(c.dest||'todos')+'</span>'+delBtn+'</div></div>';
+  }).join('');
 }
-function deleteComunicado(id){
+function deleteComunicado(id, idx){
   if(!confirm('¿Eliminar este comunicado?')) return;
-  APP.comunicados=(APP.comunicados||[]).filter(c=>c.id!==id);
+  if(id) {
+    APP.comunicados=(APP.comunicados||[]).filter(function(c){return c.id!==id;});
+  } else if(typeof idx==='number') {
+    (APP.comunicados||[]).splice(idx,1);
+  }
   persistSave();
   renderComunicadosHome();
+  // Also refresh admin panel if open
+  var adminList=document.getElementById('comunicados-admin-list');
+  if(adminList) openAdminComunicados();
   toast('Comunicado eliminado','info');
 }
 function showComunicadosSection(){
@@ -7695,14 +7670,14 @@ function initCategoriasPanel(){
   var el=document.getElementById('cat-list');
   if(!el) return;
   var cats=APP.botConfig&&APP.botConfig.categorias||[];
-  renderCatList(cats);
+  renderBotCatList(cats);
 }
 function filterCategorias(q){
   var cats=APP.botConfig&&APP.botConfig.categorias||[];
   var filtered=q?cats.filter(function(c){return (c.nombre||'').toLowerCase().includes(q.toLowerCase());}):cats;
-  renderCatList(filtered);
+  renderBotCatList(filtered);
 }
-function renderCatList(cats){
+function renderBotCatList(cats){
   var el=document.getElementById('cat-list');
   if(!el) return;
   if(!cats||!cats.length){el.innerHTML='<p style="color:#888;padding:16px;">No hay categorías.</p>';return;}
