@@ -7686,6 +7686,72 @@ function initStatsCounters(){
   },2000);
 })();
 
+// ══════════════════════════════════════════════
+//  FUNCIONES FALTANTES (referenced in HTML)
+// ══════════════════════════════════════════════
+
+// ── Bot Categorías ────────────────────────────
+function initCategoriasPanel(){
+  var el=document.getElementById('cat-list');
+  if(!el) return;
+  var cats=APP.botConfig&&APP.botConfig.categorias||[];
+  renderCatList(cats);
+}
+function filterCategorias(q){
+  var cats=APP.botConfig&&APP.botConfig.categorias||[];
+  var filtered=q?cats.filter(function(c){return (c.nombre||'').toLowerCase().includes(q.toLowerCase());}):cats;
+  renderCatList(filtered);
+}
+function renderCatList(cats){
+  var el=document.getElementById('cat-list');
+  if(!el) return;
+  if(!cats||!cats.length){el.innerHTML='<p style="color:#888;padding:16px;">No hay categorías.</p>';return;}
+  el.innerHTML=cats.map(function(c,i){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:#fafafa;">'+
+      '<span style="font-size:13px;font-weight:700;color:var(--navy);">'+(c.emoji||'📂')+' '+(c.nombre||'Sin nombre')+'</span>'+
+      '<button class="tbl-btn del" onclick="deleteCatBot('+i+')">🗑️</button></div>';
+  }).join('');
+}
+function deleteCatBot(idx){
+  if(!APP.botConfig||!APP.botConfig.categorias) return;
+  APP.botConfig.categorias.splice(idx,1);
+  persistSave();
+  initCategoriasPanel();
+  toast('Categoría eliminada','info');
+}
+
+// ── Búsqueda de estudiante en consulta enfermería ──
+function buscarEstConsulta(){
+  var input=document.getElementById('consulta-nombre-input');
+  if(!input) return;
+  var q=input.value.trim().toLowerCase();
+  var suggest=document.getElementById('consulta-sugerencias');
+  if(!suggest) return;
+  if(!q||q.length<2){suggest.style.display='none';return;}
+  var matches=(APP.students||[]).filter(function(s){
+    return (s.nombre+' '+s.apellido).toLowerCase().includes(q);
+  }).slice(0,6);
+  if(!matches.length){suggest.style.display='none';return;}
+  suggest.style.display='block';
+  suggest.innerHTML=matches.map(function(s){
+    return '<div class="sugerencia-item" onclick="seleccionarEstConsulta(\''+s.id+'\')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px;transition:background .15s;" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'\'">'+
+      '<strong>'+s.nombre+' '+s.apellido+'</strong> <span style="color:#888;font-size:11px;">— '+(s.grado||'?')+'</span></div>';
+  }).join('');
+}
+function seleccionarEstConsulta(sid){
+  var st=(APP.students||[]).find(function(s){return s.id===sid;});
+  if(!st) return;
+  var input=document.getElementById('consulta-nombre-input');
+  var hiddenId=document.getElementById('consulta-student-id');
+  var suggest=document.getElementById('consulta-sugerencias');
+  if(input) input.value=st.nombre+' '+st.apellido;
+  if(hiddenId) hiddenId.value=st.id;
+  if(suggest) suggest.style.display='none';
+  // fill grado if field exists
+  var gradoEl=document.getElementById('consulta-grado');
+  if(gradoEl) gradoEl.value=st.grado||'';
+}
+
 // ── SCROLL REVEAL ──────────────────────────────
 function initScrollReveal(){
   var els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
