@@ -7686,6 +7686,77 @@ function initStatsCounters(){
   },2000);
 })();
 
+// ── SCROLL REVEAL ──────────────────────────────
+function initScrollReveal(){
+  var els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+  if(!els.length) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('revealed'); io.unobserve(e.target); }
+    });
+  },{threshold:0.12});
+  els.forEach(function(el){ io.observe(el); });
+}
+
+// ── HERO PARTICLES ────────────────────────────────
+function initHeroParticles(){
+  var hero=document.getElementById('hero');
+  if(!hero) return;
+  var canvas=document.createElement('canvas');
+  canvas.id='hero-canvas';
+  canvas.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.35;';
+  hero.style.position='relative';
+  hero.style.overflow='hidden';
+  hero.insertBefore(canvas, hero.firstChild);
+  var ctx=canvas.getContext('2d');
+  var W, H, pts=[];
+  function resize(){ W=canvas.width=hero.offsetWidth; H=canvas.height=hero.offsetHeight; }
+  resize(); window.addEventListener('resize',resize);
+  for(var i=0;i<55;i++) pts.push({
+    x:Math.random()*1920, y:Math.random()*600,
+    r:Math.random()*2+0.5, vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.3,
+    a:Math.random()*Math.PI*2
+  });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(function(p){
+      p.x+=p.vx; p.y+=p.vy; p.a+=0.01;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(212,175,55,'+(0.3+Math.sin(p.a)*0.2)+')';
+      ctx.fill();
+    });
+    for(var i=0;i<pts.length;i++){
+      for(var j=i+1;j<pts.length;j++){
+        var dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+        var dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x,pts[i].y);
+          ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle='rgba(212,175,55,'+(0.12*(1-dist/120))+')';
+          ctx.lineWidth=0.6;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+document.addEventListener('DOMContentLoaded', initHeroParticles);
+
+// ── LOADING SCREEN ────────────────────────────────
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var loader=document.getElementById('page-loader');
+    if(loader) loader.classList.add('hidden');
+    setTimeout(initScrollReveal, 200);
+  }, 1200);
+});
+
 // ── FIX BARRA BLANCA — ocultar divs vacíos del home ──
 (function fixWhiteBar() {
     function hideEmpty() {

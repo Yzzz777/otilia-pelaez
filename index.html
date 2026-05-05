@@ -15,6 +15,15 @@
 
 <body>
 
+    <!-- ===================== LOADING SCREEN ===================== -->
+    <div id="page-loader">
+      <div class="loader-logo">
+        <img src="imagenes/logo_otilia_pelaez.png" alt="" onerror="this.style.display='none'">
+        <div class="loader-spinner"></div>
+      </div>
+      <p>C.E. Otilia Peláez</p>
+    </div>
+
     <!-- ===================== BARRA PÚBLICA SUPERIOR ===================== -->
     <div id="top-bar-public">
         <div class="top-bar-inner">
@@ -206,7 +215,7 @@
         <div id="hero">
             <div style="position:relative;z-index:1;">
                 <div class="hero-badge">📚 MINERD · DISTRITO EDUCATIVO 10-02</div>
-                <h1>Centro Educativo<br><span>Otilia Peláez</span></h1>
+                <h1>Centro Educativo<br><span class="gradient-text">Otilia Peláez</span></h1>
                 <p class="hero-sub">Formando ciudadanos íntegros en Sabana Perdida, Santo Domingo Norte desde 1978</p>
                 <div class="hero-btns">
                     <button class="btn-primary" onclick="showPage('inscripcion')">📝 Inscribir Estudiante</button>
@@ -214,7 +223,7 @@
                     <a class="btn-secondary" href="https://wa.me/18095900771" target="_blank">📱 WhatsApp</a>
                 </div>
             </div>
-            <div class="stats-bar" style="position:relative;z-index:1;">
+            <div class="stats-bar reveal" style="position:relative;z-index:1;">
                 <div class="stat-item">
                     <div class="num">1978</div>
                     <div class="lbl">Año Fundación</div>
@@ -261,32 +270,32 @@
         <!-- MISIÓN Y VALORES -->
         <div class="section" style="background:white;padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2>Nuestra <span>Misión y Valores</span></h2>
                     <div class="divider"></div>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:30px;">
-                    <div class="valor-card">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:30px;" class="reveal-group">
+                    <div class="valor-card reveal reveal-scale">
                         <div class="valor-icon">🎯</div>
                         <h4>Misión</h4>
                         <p>Formar ciudadanos íntegros con valores éticos, académicos y espirituales que contribuyan al desarrollo de la sociedad dominicana.</p>
                     </div>
-                    <div class="valor-card">
+                    <div class="valor-card reveal reveal-scale">
                         <div class="valor-icon">🌟</div>
                         <h4>Visión</h4>
                         <p>Ser un centro educativo de excelencia reconocido por su calidad académica, valores cristianos y compromiso con la comunidad.</p>
                     </div>
-                    <div class="valor-card">
+                    <div class="valor-card reveal reveal-scale">
                         <div class="valor-icon">✝️</div>
                         <h4>Fe</h4>
                         <p>Fundamentados en los valores cristianos transmitidos por las Hermanas de San Pablo.</p>
                     </div>
-                    <div class="valor-card">
+                    <div class="valor-card reveal reveal-scale">
                         <div class="valor-icon">📚</div>
                         <h4>Excelencia</h4>
                         <p>Compromiso con la calidad académica y el desarrollo integral de cada estudiante.</p>
                     </div>
-                    <div class="valor-card">
+                    <div class="valor-card reveal reveal-scale">
                         <div class="valor-icon">🤝</div>
                         <h4>Comunidad</h4>
                         <p>Fomentamos el respeto, la solidaridad y la participación activa de padres, maestros y alumnos.</p>
@@ -298,12 +307,12 @@
         <!-- NIVELES Y OFERTA ACADÉMICA -->
         <div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2 style="color:white;">Oferta <span>Académica</span></h2>
                     <div class="divider"></div>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:30px;">
-                    <div class="nivel-card">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:30px;" class="reveal-group">
+                    <div class="nivel-card reveal">
                         <div class="nivel-icon">🌱</div>
                         <h4>Nivel Primario</h4>
                         <p>1° al 6° grado</p>
@@ -317,7 +326,7 @@
                         </ul>
                         <button class="btn btn-gold" style="width:100%;margin-top:12px;" onclick="showPage('inscripcion')">Inscribirse →</button>
                     </div>
-                    <div class="nivel-card">
+                    <div class="nivel-card reveal">
                         <div class="nivel-icon">📖</div>
                         <h4>Nivel Secundario</h4>
                         <p>1° al 4° grado</p>
@@ -331,7 +340,7 @@
                         </ul>
                         <button class="btn btn-gold" style="width:100%;margin-top:12px;" onclick="showPage('inscripcion')">Inscribirse →</button>
                     </div>
-                    <div class="nivel-card">
+                    <div class="nivel-card reveal">
                         <div class="nivel-icon">🎓</div>
                         <h4>Bachilleratos</h4>
                         <p>Especialidades disponibles</p>
@@ -344,7 +353,7 @@
                         </ul>
                         <button class="btn btn-outline" style="width:100%;margin-top:12px;color:white;border-color:rgba(255,255,255,0.5);" onclick="showPage('inscripcion')">Más información →</button>
                     </div>
-                    <div class="nivel-card">
+                    <div class="nivel-card reveal">
                         <div class="nivel-icon">🏆</div>
                         <h4>Actividades Extracurriculares</h4>
                         <p>Desarrollo integral</p>
@@ -364,7 +373,7 @@
         <!-- INSTALACIONES -->
         <div class="section" style="background:#fafafa;padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2>Nuestras <span>Instalaciones</span></h2>
                     <div class="divider"></div>
                 </div>
@@ -406,7 +415,7 @@
         <!-- ÚLTIMOS ANUNCIOS -->
         <div class="section" style="padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2>Últimos <span>Anuncios</span></h2>
                     <div class="divider"></div>
                 </div>
@@ -423,7 +432,7 @@
         <!-- CALENDARIO ESCOLAR -->
         <div style="background:linear-gradient(135deg,#1a4a2e,#0d3320);padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2 style="color:white;">Calendario <span>Escolar 2025–2026</span></h2>
                     <div class="divider"></div>
                 </div>
@@ -485,7 +494,7 @@
         <!-- GALERÍA DE FOTOS (admin puede agregar) -->
         <div class="section" style="background:white;padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2>Galería <span>del Centro</span></h2>
                     <div class="divider"></div>
                 </div>
@@ -498,7 +507,7 @@
         <!-- TESTIMONIOS -->
         <div style="background:var(--navy);padding:60px 20px;">
             <div style="max-width:1000px;margin:0 auto;text-align:center;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2 style="color:white;">Lo que dicen <span>nuestras familias</span></h2>
                     <div class="divider"></div>
                 </div>
@@ -531,7 +540,7 @@
         <!-- CONTACTO Y UBICACIÓN -->
         <div class="section" style="background:#f5f0e8;padding:60px 20px;">
             <div style="max-width:1100px;margin:0 auto;">
-                <div class="section-title">
+                <div class="section-title reveal">
                     <h2>Contáctanos y <span>Encuéntranos</span></h2>
                     <div class="divider"></div>
                 </div>
