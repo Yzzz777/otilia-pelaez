@@ -7812,8 +7812,24 @@ window.addEventListener('load', function(){
             el.style.overflow = isEmpty ? 'hidden' : '';
         });
     }
-    // Ejecutar inmediatamente y periódicamente
     hideEmpty();
     setInterval(hideEmpty, 300);
+})();
+
+// ── Reloj en vivo del navbar ──
+(function initNavClock(){
+    function updateClock(){
+        var el=document.getElementById('nav-live-clock');
+        if(!el) return;
+        var now=new Date();
+        var h=now.getHours();
+        var m=now.getMinutes().toString().padStart(2,'0');
+        var s=now.getSeconds().toString().padStart(2,'0');
+        var ampm=h>=12?'PM':'AM';
+        h=h%12||12;
+        el.textContent=h+':'+m+':'+s+' '+ampm;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
 })();
 

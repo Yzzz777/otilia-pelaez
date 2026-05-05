@@ -166,11 +166,22 @@
     <!-- ===================== NAVBAR ===================== -->
     <nav id="navbar" style="display:none;">
         <button id="sidebar-toggle" onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:white;font-size:22px;padding:8px;">☰</button>
-        <div class="nav-logo" onclick="showPage('home')">
-            <img src="imagenes/logo_otilia_pelaez.png" alt="Logo" class="nav-logo-img">
-            <div class="nav-logo-text">
-                <h2>C.E. Otilia Peláez</h2><span>Santo Domingo Norte, RD</span></div>
+
+        <!-- Centro del navbar: nombre + info dinámica -->
+        <div class="nav-center" onclick="showPage('home')" title="Ir al inicio">
+            <div class="nav-center-name">
+                <span class="nav-escudo">🎓</span>
+                <span class="nav-title-text">C.E. <strong>Otilia Peláez</strong></span>
+            </div>
+            <div class="nav-center-meta">
+                <span class="nav-meta-item">📍 Sabana Perdida, SDN</span>
+                <span class="nav-meta-sep">·</span>
+                <span class="nav-meta-item" id="nav-live-clock">--:-- --</span>
+                <span class="nav-meta-sep">·</span>
+                <span class="nav-meta-item">Est. 1978</span>
+            </div>
         </div>
+
         <div class="nav-links nav-links-row" id="nav-links-dynamic"></div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <button class="notif-btn" onclick="toggleNotif()" id="notif-btn">🔔<span class="notif-dot" id="notif-dot"></span></button>
