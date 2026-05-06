@@ -714,7 +714,15 @@ function buildNavbar(role){
   // Also build sidebar
   var sidebarLinks=document.getElementById('sidebar-links');
   var sidebarUser=document.getElementById('sidebar-username');
-  if(sidebarUser&&APP.currentUser)sidebarUser.textContent=APP.currentUser.name+' · '+(APP.currentUser.role||'').toUpperCase();
+  var sidebarRoleLabel=document.getElementById('sidebar-user-role-label');
+  var sidebarAvatar=document.getElementById('sidebar-user-avatar');
+  var roleEmojis={admin:'👑',profesor:'👨‍🏫',estudiante:'🎓',padre:'👪',enfermeria:'🏥',secretaria:'🗂️',directora:'👩‍💼',orientacion:'🧭',deporte:'⚽'};
+  var roleNames={admin:'Administrador',profesor:'Profesor/a',estudiante:'Estudiante',padre:'Padre/Madre',enfermeria:'Enfermería',secretaria:'Secretaría',directora:'Directora',orientacion:'Orientación',deporte:'Ed. Física'};
+  if(APP.currentUser){
+    if(sidebarUser) sidebarUser.textContent=APP.currentUser.name||'Usuario';
+    if(sidebarRoleLabel) sidebarRoleLabel.textContent=roleNames[role]||role;
+    if(sidebarAvatar) sidebarAvatar.textContent=roleEmojis[role]||'👤';
+  }
   if(sidebarLinks){sidebarLinks.innerHTML=buildSidebarLinks(role);}
 }
 

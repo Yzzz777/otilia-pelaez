@@ -191,19 +191,48 @@
         </div>
     </nav>
     <!-- ===================== SIDEBAR ===================== -->
-    <div id="sidebar-overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1999;"></div>
-    <div id="app-sidebar" style="display:none;position:fixed;top:0;left:0;width:280px;height:100%;background:var(--navy);z-index:2000;flex-direction:column;overflow-y:auto;padding:0;box-shadow:4px 0 24px rgba(0,0,0,0.4);">
-      <div style="background:linear-gradient(135deg,var(--navy),var(--blue));padding:20px;border-bottom:3px solid var(--gold);display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <img src="imagenes/logo_otilia_pelaez.png" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);" onerror="this.style.display='none'">
+    <div id="sidebar-overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:1999;"></div>
+    <div id="app-sidebar" class="sidebar-premium" style="display:none;">
+
+      <!-- Header del sidebar -->
+      <div class="sidebar-header">
+        <div class="sidebar-school-info">
+          <div class="sidebar-crest">🎓</div>
           <div>
-            <div style="color:var(--gold);font-family:'Playfair Display',serif;font-size:13px;font-weight:700;">C.E. Otilia Peláez</div>
-            <div id="sidebar-username" style="color:rgba(255,255,255,0.7);font-size:11px;"></div>
+            <div class="sidebar-school-name">C.E. Otilia Peláez</div>
+            <div class="sidebar-school-loc">📍 Sabana Perdida · Est. 1978</div>
           </div>
         </div>
-        <button onclick="closeSidebar()" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:20px;cursor:pointer;">✕</button>
+        <button onclick="closeSidebar()" class="sidebar-close-btn">✕</button>
       </div>
-      <div id="sidebar-links" style="padding:12px 0;"></div>
+
+      <!-- User card -->
+      <div class="sidebar-user-card" id="sidebar-user-card">
+        <div class="sidebar-user-avatar" id="sidebar-user-avatar">👤</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-username">Usuario</div>
+          <div class="sidebar-user-role" id="sidebar-user-role-label">—</div>
+        </div>
+      </div>
+
+      <!-- Links dinámicos -->
+      <div id="sidebar-links" class="sidebar-nav"></div>
+
+      <!-- Acciones rápidas -->
+      <div class="sidebar-quick-actions">
+        <div class="sidebar-section-title">Acciones Rápidas</div>
+        <button class="sidebar-action-btn" onclick="closeSidebar();showPage('home')">🏠 Inicio</button>
+        <button class="sidebar-action-btn" onclick="closeSidebar();showPage('anuncios')">📢 Anuncios</button>
+        <button class="sidebar-action-btn" onclick="closeSidebar();toggleDarkMode()">🌙 Modo Oscuro</button>
+        <button class="sidebar-action-btn danger" onclick="closeSidebar();logout()">🚪 Cerrar Sesión</button>
+      </div>
+
+      <!-- Footer del sidebar -->
+      <div class="sidebar-footer">
+        <div>© 2025 C.E. Otilia Peláez</div>
+        <div>MINERD · Dist. 10-02 · SDN</div>
+      </div>
+
     </div>
     <div class="notif-panel" id="notif-panel">
         <div class="notif-header">
