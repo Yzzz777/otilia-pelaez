@@ -8300,7 +8300,7 @@ body.dark-mode ::-webkit-scrollbar-thumb { background:rgba(212,175,55,.25); }
 /* Header */
 .sidebar-header {
   background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(13,28,62,0.9) 100%);
-  padding: 20px 16px 16px;
+  padding: 24px 16px 20px;
   border-bottom: 2px solid rgba(212,175,55,0.35);
   display: flex;
   align-items: center;
@@ -8359,11 +8359,11 @@ body.dark-mode ::-webkit-scrollbar-thumb { background:rgba(212,175,55,.25); }
 
 /* User card */
 .sidebar-user-card {
-  margin: 14px 14px 0;
+  margin: 22px 14px 0;
   background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(212,175,55,0.08) 100%);
   border: 1px solid rgba(212,175,55,0.2);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 16px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
