@@ -7015,6 +7015,7 @@ function showSecretariaSection(id,btn){
   if(btn){document.querySelectorAll('#page-secretaria .dash-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
   if(id==='sec-inscripciones') renderSecInscripciones();
   if(id==='sec-estudiantes') renderSecEstudiantes();
+  renderSecretariaPanel();
 }
 function renderSecInscripciones(){
   var el=document.getElementById('sec-inscripciones-table');if(!el)return;
@@ -7044,6 +7045,7 @@ function showDirectoraSection(id,btn){
   if(btn){document.querySelectorAll('#page-directora .dash-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
   if(id==='dir-personal'){var el2=document.getElementById('dir-personal-list');if(el2){var profs=APP.profesores||[];el2.innerHTML=profs.length?'<table class="data-table"><thead><tr><th>Nombre</th><th>Email</th><th>Materia</th></tr></thead><tbody>'+profs.map(p=>'<tr><td>'+p.nombre+' '+p.apellido+'</td><td>'+(p.email||'—')+'</td><td>'+(p.materia||'—')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:#888;font-size:13px;">No hay profesores registrados.</p>';}}
   if(id==='dir-inicio'){var k1=document.getElementById('dir-kpi-est');if(k1)k1.textContent=(APP.students||[]).length;var k2=document.getElementById('dir-kpi-prof');if(k2)k2.textContent=(APP.profesores||[]).length;var k3=document.getElementById('dir-kpi-inc');if(k3)k3.textContent=(APP.inscripciones||[]).length;}
+  renderDirectoraPanel();
 }
 
 // ══════════════════════════════════════════════
@@ -7054,6 +7056,7 @@ function showOrientacionSection(id,btn){
   var el=document.getElementById(id);if(el)el.classList.add('active');
   if(btn){document.querySelectorAll('#page-orientacion .dash-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
   if(id==='ori-estudiantes'){var el2=document.getElementById('ori-estudiantes-list');if(el2){var list=APP.students||[];el2.innerHTML=list.length?'<table class="data-table"><thead><tr><th>Nombre</th><th>Grado</th></tr></thead><tbody>'+list.map(s=>'<tr><td>'+s.nombre+' '+s.apellido+'</td><td>'+(s.grado||'—')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:#888;font-size:13px;">No hay estudiantes.</p>';var k=document.getElementById('ori-kpi-est');if(k)k.textContent=list.length;}}
+  renderOrientacionPanel();
 }
 function addOrientacionCaso(){
   var est=prompt('Nombre del estudiante:');if(!est)return;
@@ -7075,6 +7078,7 @@ function showDeporteSection(id,btn){
   var el=document.getElementById(id);if(el)el.classList.add('active');
   if(btn){document.querySelectorAll('#page-deporte .dash-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
   if(id==='dep-notas'){var el2=document.getElementById('dep-notas-table');if(el2){var list=APP.students||[];var k=document.getElementById('dep-kpi-est');if(k)k.textContent=list.length;el2.innerHTML=list.length?'<table class="data-table"><thead><tr><th>Nombre</th><th>Grado</th><th>Nota Ed. Física</th></tr></thead><tbody>'+list.map(s=>'<tr><td>'+s.nombre+' '+s.apellido+'</td><td>'+(s.grado||'—')+'</td><td>'+(s.notaEdf||'—')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:#888;">No hay estudiantes.</p>';}}
+  renderDeportePanel();
 }
 function addEquipoDeporte(){
   var nombre=prompt('Nombre del equipo:');if(!nombre)return;
@@ -7900,6 +7904,125 @@ window.addEventListener('load', function(){
     setTimeout(initScrollReveal, 200);
   }, 1200);
 });
+
+// ══════════════════════════════════════════════
+//  ROLE PORTAL DATA RENDERING
+// ══════════════════════════════════════════════
+
+function renderSecretariaPanel(){
+  // KPIs
+  var est=document.getElementById('sec-kpi-estudiantes');
+  var inc=document.getElementById('sec-kpi-inscripciones');
+  var pad=document.getElementById('sec-kpi-padres');
+  if(est) est.textContent=(APP.students||[]).length;
+  if(inc) inc.textContent=(APP.inscripciones||[]).length;
+  if(pad) pad.textContent=(APP.padres||[]).length;
+  // Inscripciones table
+  var iTable=document.getElementById('sec-inscripciones-table');
+  if(iTable){
+    var list=APP.inscripciones||[];
+    if(!list.length){iTable.innerHTML='<p style="color:#888;padding:16px;">No hay inscripciones.</p>';return;}
+    iTable.innerHTML='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nombre</th><th>Grado</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>'
+      +list.map(function(i){
+        var color=i.estado==='aprobado'?'#16a34a':i.estado==='rechazado'?'#dc2626':'#d97706';
+        return '<tr><td>'+i.nombre+' '+i.apellido+'</td><td>'+(i.grado||'—')+'</td><td><span style="color:'+color+';font-weight:700;">'+((i.estado||'pendiente').toUpperCase())+'</span></td><td>'+(i.fecha||'—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+  // Estudiantes table
+  var sTable=document.getElementById('sec-estudiantes-table');
+  if(sTable){
+    var sList=APP.students||[];
+    if(!sList.length){sTable.innerHTML='<p style="color:#888;padding:16px;">No hay estudiantes.</p>';return;}
+    sTable.innerHTML='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nombre</th><th>Grado</th><th>Sección</th><th>Email</th></tr></thead><tbody>'
+      +sList.slice(0,30).map(function(s){
+        return '<tr><td>'+s.nombre+' '+s.apellido+'</td><td>'+(s.grado||'—')+'</td><td>'+(s.seccion||'—')+'</td><td style="font-size:11px;">'+(s.email||'—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>'+(sList.length>30?'<p style="color:#888;font-size:12px;padding:8px;">... y '+(sList.length-30)+' más.</p>':'');
+  }
+}
+
+function renderDirectoraPanel(){
+  var est=document.getElementById('dir-kpi-est');
+  var prof=document.getElementById('dir-kpi-prof');
+  var inc=document.getElementById('dir-kpi-inc');
+  var ann=document.getElementById('dir-kpi-ann');
+  if(est) est.textContent=(APP.students||[]).length;
+  if(prof) prof.textContent=(APP.profesores||[]).length;
+  if(inc) inc.textContent=(APP.inscripciones||[]).length;
+  if(ann) ann.textContent=(APP.announcements||[]).length;
+  // Reportes
+  var rep=document.getElementById('dir-reportes-content');
+  if(rep){
+    var aprobados=(APP.inscripciones||[]).filter(function(i){return i.estado==='aprobado';}).length;
+    var pendientes=(APP.inscripciones||[]).filter(function(i){return i.estado==='pendiente';}).length;
+    rep.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;">'
+      +'<div style="background:#f0fdf4;border-radius:12px;padding:18px;border-left:4px solid #16a34a;"><div style="font-size:24px;font-weight:900;color:#16a34a;">'+aprobados+'</div><div style="font-size:12px;color:#666;">Inscripciones Aprobadas</div></div>'
+      +'<div style="background:#fffbeb;border-radius:12px;padding:18px;border-left:4px solid #d97706;"><div style="font-size:24px;font-weight:900;color:#d97706;">'+pendientes+'</div><div style="font-size:12px;color:#666;">Inscripciones Pendientes</div></div>'
+      +'<div style="background:#eff6ff;border-radius:12px;padding:18px;border-left:4px solid #2563eb;"><div style="font-size:24px;font-weight:900;color:#2563eb;">'+(APP.students||[]).length+'</div><div style="font-size:12px;color:#666;">Estudiantes Activos</div></div>'
+      +'<div style="background:#fdf4ff;border-radius:12px;padding:18px;border-left:4px solid #9333ea;"><div style="font-size:24px;font-weight:900;color:#9333ea;">'+(APP.notas||[]).length+'</div><div style="font-size:12px;color:#666;">Notas Registradas</div></div>'
+      +'</div>';
+  }
+  // Anuncios
+  var annList=document.getElementById('dir-anuncios-list');
+  if(annList){
+    var anns=APP.announcements||[];
+    if(!anns.length){annList.innerHTML='<p style="color:#888;">No hay anuncios publicados.</p>';return;}
+    annList.innerHTML=anns.slice(0,10).map(function(a){
+      return '<div style="background:#f8f9fa;border-radius:10px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--gold);">'
+        +'<div style="font-weight:700;font-size:13px;color:var(--navy);">'+a.titulo+'</div>'
+        +'<div style="font-size:12px;color:#888;margin-top:4px;">'+(a.desc||'').substring(0,80)+'</div></div>';
+    }).join('');
+  }
+  // Personal
+  var persList=document.getElementById('dir-personal-list');
+  if(persList){
+    var personal=APP.profesores||[];
+    if(!personal.length){persList.innerHTML='<p style="color:#888;">No hay personal registrado.</p>';return;}
+    persList.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">'
+      +personal.map(function(p){
+        return '<div style="background:#f8f9fa;border-radius:12px;padding:14px;text-align:center;">'
+          +'<div style="font-size:28px;">👨‍🏫</div>'
+          +'<div style="font-weight:700;font-size:13px;color:var(--navy);margin-top:6px;">'+(p.nombre||p.name||'')+'</div>'
+          +'<div style="font-size:11px;color:#888;">'+(p.materia||p.role||'Docente')+'</div></div>';
+      }).join('')+'</div>';
+  }
+  // Stats
+  renderDirectoraStats();
+}
+
+function renderOrientacionPanel(){
+  var kpEst=document.getElementById('ori-kpi-est');
+  var kpCas=document.getElementById('ori-kpi-casos');
+  if(kpEst) kpEst.textContent=(APP.students||[]).length;
+  if(kpCas) kpCas.textContent=(APP.oriCasos||[]).filter(function(c){return c.estado==='activo';}).length;
+  var estList=document.getElementById('ori-estudiantes-list');
+  if(estList){
+    var sList=APP.students||[];
+    if(!sList.length){estList.innerHTML='<p style="color:#888;padding:16px;">No hay estudiantes.</p>';return;}
+    estList.innerHTML='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Nombre</th><th>Grado</th><th>Sección</th></tr></thead><tbody>'
+      +sList.slice(0,25).map(function(s){
+        return '<tr><td>'+s.nombre+' '+s.apellido+'</td><td>'+(s.grado||'—')+'</td><td>'+(s.seccion||'—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+}
+
+function renderDeportePanel(){
+  var kpEst=document.getElementById('dep-kpi-est');
+  var kpEq=document.getElementById('dep-kpi-equipos');
+  var kpTor=document.getElementById('dep-kpi-torneos');
+  if(kpEst) kpEst.textContent=(APP.students||[]).length;
+  if(kpEq) kpEq.textContent=(APP.depEquipos||[]).length;
+  if(kpTor) kpTor.textContent=(APP.depTorneos||[]).length;
+  var notasTable=document.getElementById('dep-notas-table');
+  if(notasTable){
+    var sList=APP.students||[];
+    if(!sList.length){notasTable.innerHTML='<p style="color:#888;padding:16px;">No hay estudiantes.</p>';return;}
+    notasTable.innerHTML='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Estudiante</th><th>Grado</th><th>Nota Física</th><th>Participación</th></tr></thead><tbody>'
+      +sList.slice(0,20).map(function(s){
+        var nota=(APP.notasTrimestre&&APP.notasTrimestre[s.id]&&APP.notasTrimestre[s.id].edFisica)||'—';
+        return '<tr><td>'+s.nombre+' '+s.apellido+'</td><td>'+(s.grado||'—')+'</td><td>'+nota+'</td><td>—</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+}
 
 // ── FIX BARRA BLANCA — ocultar divs vacíos del home ──
 (function fixWhiteBar() {

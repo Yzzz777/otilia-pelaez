@@ -77,10 +77,10 @@ body {
 }
 
 .login-emblem {
-    width: 64px;
-    height: 64px;
+    width: 84px;
+    height: 84px;
     border-radius: 50%;
-    background: var(--white);
+    background: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,8 +93,9 @@ body {
 .login-emblem img {
     width: 60px;
     height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
+    border-radius: 0;
+    object-fit: contain;
+    padding: 4px;
     display: block;
 }
 
@@ -267,8 +268,8 @@ body {
 .nav-logo-img {
     width: 42px;
     height: 42px;
-    border-radius: 50%;
-    object-fit: cover;
+    border-radius: 0;
+    object-fit: contain;
     border: 2px solid var(--gold);
     box-shadow: 0 2px 8px rgba(245, 197, 24, 0.35);
     flex-shrink: 0;
@@ -295,7 +296,7 @@ body {
 .nav-logo-circle img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 50%;
 }
 
@@ -587,6 +588,22 @@ body:not(.logged-in) .page {
     gap: 14px;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 50px;
+}
+
+.hero-badge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.hero-badge-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 16px rgba(212,175,55,0.5));
+  animation: escudoPulse 3s ease-in-out infinite;
 }
 
 .btn-primary {
@@ -3307,7 +3324,7 @@ body:not(.logged-in) .page {
     width: 44px;
     height: 44px;
     object-fit: contain;
-    border-radius: 50%;
+    border-radius: 0;
 }
 
 #public-navbar .nav-logo-text h2 {
@@ -5145,7 +5162,9 @@ html {
 }
 
 #login-screen .login-emblem img {
-    border-radius: 50%;
+    border-radius: 0;
+    object-fit: contain;
+    padding: 4px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     width: 80px;
     height: 80px;
@@ -7779,7 +7798,7 @@ body.dark-mode .comunicado-card .com-body { color: #bbb; }
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
     border: 3px solid var(--gold); box-shadow: 0 4px 16px rgba(212,175,55,0.3);
 }
-.login-emblem img { width: 52px; height: 52px; object-fit: contain; border-radius: 50%; }
+.login-emblem img { width: 52px; height: 52px; object-fit: contain; border-radius: 0; padding: 4px; }
 .login-logo h2 {
     font-family: 'Playfair Display', serif;
     font-size: 18px; font-weight: 900; color: var(--navy); margin: 0 0 4px; line-height: 1.3;
@@ -8759,4 +8778,60 @@ body.dark-mode .sidebar-premium {
 }
 body.dark-mode .page {
   background: linear-gradient(180deg, #0d1117 0%, #111827 100%) !important;
+}
+
+/* ── Role portals color themes ── */
+#page-secretaria .dash-header { background: linear-gradient(135deg, #0c2461, #1e3799) !important; border-bottom: 3px solid #4a90d9 !important; }
+#page-secretaria .dash-tab.active { background: #4a90d9 !important; color: white !important; }
+#page-secretaria .dash-tab:hover { background: rgba(74,144,217,0.2) !important; color: #4a90d9 !important; }
+
+#page-directora .dash-header { background: linear-gradient(135deg, #4a0072, #6d12a8) !important; border-bottom: 3px solid #a855f7 !important; }
+#page-directora .dash-tab.active { background: #a855f7 !important; color: white !important; }
+#page-directora .dash-tab:hover { background: rgba(168,85,247,0.2) !important; color: #a855f7 !important; }
+
+#page-orientacion .dash-header { background: linear-gradient(135deg, #064e3b, #065f46) !important; border-bottom: 3px solid #34d399 !important; }
+#page-orientacion .dash-tab.active { background: #34d399 !important; color: #064e3b !important; }
+#page-orientacion .dash-tab:hover { background: rgba(52,211,153,0.2) !important; color: #34d399 !important; }
+
+#page-deporte .dash-header { background: linear-gradient(135deg, #7c1d1d, #991b1b) !important; border-bottom: 3px solid #f87171 !important; }
+#page-deporte .dash-tab.active { background: #f87171 !important; color: white !important; }
+#page-deporte .dash-tab:hover { background: rgba(248,113,113,0.2) !important; color: #f87171 !important; }
+
+#page-enfermeria .dash-header { background: linear-gradient(135deg, #065f46, #047857) !important; border-bottom: 3px solid #10b981 !important; }
+#page-enfermeria .dash-tab.active { background: #10b981 !important; color: white !important; }
+#page-enfermeria .dash-tab:hover { background: rgba(16,185,129,0.2) !important; color: #10b981 !important; }
+
+#page-profesor .dash-header { background: linear-gradient(135deg, #1a3a6e, #1e4d8c) !important; border-bottom: 3px solid #60a5fa !important; }
+#page-profesor .dash-tab.active { background: #60a5fa !important; color: #1e4d8c !important; }
+#page-profesor .dash-tab:hover { background: rgba(96,165,250,0.2) !important; color: #60a5fa !important; }
+
+/* Portal headers with role emoji watermark */
+#page-secretaria .dash-header::before { content: '🗂️'; }
+#page-directora .dash-header::before { content: '👩‍💼'; }
+#page-orientacion .dash-header::before { content: '🧭'; }
+#page-deporte .dash-header::before { content: '⚽'; }
+#page-enfermeria .dash-header::before { content: '🏥'; }
+#page-profesor .dash-header::before { content: '👨‍🏫'; }
+#page-secretaria .dash-header::before,
+#page-directora .dash-header::before,
+#page-orientacion .dash-header::before,
+#page-deporte .dash-header::before,
+#page-enfermeria .dash-header::before,
+#page-profesor .dash-header::before {
+  position: absolute;
+  right: 28px; top: 50%;
+  transform: translateY(-60%);
+  font-size: 72px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+/* Tab bar bg for all portals */
+#page-secretaria .dash-tabs,
+#page-directora .dash-tabs,
+#page-orientacion .dash-tabs,
+#page-deporte .dash-tabs,
+#page-enfermeria .dash-tabs,
+#page-profesor .dash-tabs {
+  background: #f0f4ff !important;
+  border-bottom: 1px solid rgba(0,0,0,0.06) !important;
 }
