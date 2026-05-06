@@ -198,6 +198,11 @@ function persistLoad(){
         if(data[k] !== undefined) APP[k] = data[k];
       });
       ensureDefaultAccounts();
+      // Inject IA key if not already set (from secure local config)
+      if(APP.botConfig && !APP.botConfig.iaKey){
+        var _k = localStorage.getItem('_obot_k');
+        if(_k) APP.botConfig.iaKey = _k;
+      }
       console.log('✅ Estado restaurado desde localStorage');
     }
   }catch(e){ console.warn('localStorage load error:',e); }
@@ -2944,8 +2949,9 @@ function toggleChat(){
   }
 }
 
-function addChatMsg(from,text){
-  chatHistory.push({from:from,text:text,time:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'})});
+function addChatMsg(from, text, extraClass){
+  var entry={from:from, text:text, time:new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}), extraClass:extraClass||''};
+  chatHistory.push(entry);
   renderChatMessages();
 }
 
@@ -2953,10 +2959,25 @@ function renderChatMessages(){
   var el=document.getElementById('chat-messages');if(!el)return;
   el.innerHTML=chatHistory.map(function(m){
     var isBot=m.from==='bot';
-    var txt=m.text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
-    return isBot
-      ?'<div style="display:flex;gap:8px;align-items:flex-end;"><div style="width:28px;height:28px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">🤖</div><div style="background:#f0f4ff;border-radius:14px 14px 14px 2px;padding:10px 13px;max-width:80%;"><p style="margin:0;font-size:13px;line-height:1.5;color:var(--navy);">'+txt+'</p><span style="font-size:10px;color:#aaa;">'+m.time+'</span></div></div>'
-      :'<div style="display:flex;justify-content:flex-end;"><div style="background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:14px 14px 2px 14px;padding:10px 13px;max-width:80%;"><p style="margin:0;font-size:13px;color:white;line-height:1.5;">'+txt+'</p><span style="font-size:10px;color:rgba(255,255,255,0.6);">'+m.time+'</span></div></div>';
+    var txt=m.text
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,'<em>$1</em>')
+      .replace(/\n/g,'<br>');
+    var cls=m.extraClass?' '+m.extraClass:'';
+    if(isBot){
+      return '<div class="chat-row-bot'+cls+'" style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">'
+        +'<div style="width:30px;height:30px;background:linear-gradient(135deg,var(--gold),#a87d1a);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;box-shadow:0 2px 8px rgba(212,175,55,0.4);">🤖</div>'
+        +'<div style="background:linear-gradient(135deg,#f0f4ff,#e8eeff);border-radius:16px 16px 16px 3px;padding:10px 14px;max-width:82%;box-shadow:0 2px 8px rgba(0,0,0,0.07);">'
+        +'<p style="margin:0;font-size:13px;line-height:1.6;color:var(--navy);">'+txt+'</p>'
+        +'<span style="font-size:10px;color:#aaa;margin-top:3px;display:block;">'+m.time+'</span>'
+        +'</div></div>';
+    } else {
+      return '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
+        +'<div style="background:linear-gradient(135deg,#0d1f3e,#1a3a6e);border-radius:16px 16px 3px 16px;padding:10px 14px;max-width:82%;box-shadow:0 2px 10px rgba(13,31,62,0.25);">'
+        +'<p style="margin:0;font-size:13px;color:white;line-height:1.6;">'+txt+'</p>'
+        +'<span style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;display:block;text-align:right;">'+m.time+'</span>'
+        +'</div></div>';
+    }
   }).join('');
   el.scrollTop=el.scrollHeight;
 }
@@ -2974,54 +2995,128 @@ function quickReply(text){
   setTimeout(function(){processChatMsg(text);},500);
 }
 
+// ── Groq AI Config ──────────────────────────────────────────────
+// La API key se configura en el panel Admin → Bot → IA Key
+var GROQ_MODEL   = 'llama-3.3-70b-versatile';
+var GROQ_ENDPOINT= 'https://api.groq.com/openai/v1/chat/completions';
+function getGroqKey(){
+  return (APP.botConfig && APP.botConfig.iaKey) || '';
+}
+var _chatHistory = []; // conversación completa para contexto
+
+function getGroqSystemPrompt(){
+  var user = APP.currentUser ? APP.currentUser.name : 'usuario';
+  var role = APP.currentUser ? APP.currentUser.role : '';
+  var estudiantes = (APP.students||[]).length;
+  var anuncio = (APP.announcements||[])[0];
+  var anuncioTxt = anuncio ? '"'+anuncio.titulo+'": '+( anuncio.desc||'').substring(0,100) : 'No hay anuncios recientes.';
+  return [
+    'Eres OtiliaBot, el asistente inteligente del Centro Educativo Otilia Peláez, ubicado en Sabana Perdida, Santo Domingo Norte, República Dominicana. Fundado en 1978.',
+    'Datos del centro: Tel: (809) 590-0771 | WhatsApp al mismo número | Av. Charles de Gaulle, Sabana Perdida, SDN.',
+    'Horario escolar: lunes a viernes 7:30 AM – 4:30 PM. Inscripciones en ese horario también.',
+    'Mínimo para aprobar: 65. Meritorio: 80–89. Cuadro de Honor: 90+.',
+    'Estudiantes matriculados actualmente: '+estudiantes+'.',
+    'Último anuncio del centro: '+anuncioTxt,
+    'Usuario conectado: '+user+(role?' ('+role+')':'')+'.',
+    '',
+    'INSTRUCCIONES DE PERSONALIDAD:',
+    '- Responde siempre en español dominicano, de forma amigable y juvenil pero profesional.',
+    '- Usa emojis con moderación (1-2 por respuesta).',
+    '- Sé conciso: máximo 3-4 oraciones por respuesta a menos que se pida más detalle.',
+    '- Puedes responder sobre CUALQUIER tema que el usuario pregunte, no solo del colegio.',
+    '- Si te preguntan sobre el colegio, da información precisa.',
+    '- Si te preguntan algo general (matemáticas, historia, cultura, etc.), responde como un tutor inteligente.',
+    '- Nunca digas que no puedes responder algo. Si no sabes algo específico del colegio, di que lo consulten con la administración.',
+    '- Puedes hablar de deportes, música, tecnología, ayudar con tareas, etc.',
+    '- Mantén siempre un tono motivador y positivo.'
+  ].join('\n');
+}
+
 function sendChat(){
   var inp=document.getElementById('chat-input');if(!inp)return;
   var msg=inp.value.trim();if(!msg)return;
   addChatMsg('user',msg);inp.value='';
   renderQuickReplies([]);
-  setTimeout(function(){processChatMsg(msg);},600);
+  // Show typing indicator
+  addChatMsg('bot','<span class="bot-typing"><span></span><span></span><span></span></span>','typing-msg');
+  processChatMsg(msg);
 }
 
 function processChatMsg(msg){
+  // Add to history
+  _chatHistory.push({role:'user', content:msg});
+  // Keep last 12 messages for context
+  if(_chatHistory.length > 12) _chatHistory = _chatHistory.slice(_chatHistory.length - 12);
+
+  // Try Groq AI first
+  var messages = [{role:'system', content:getGroqSystemPrompt()}].concat(_chatHistory);
+
+  var apiKey = getGroqKey();
+  if(!apiKey){
+    chatHistory = chatHistory.filter(function(m){ return m.extraClass !== 'typing-msg'; });
+    processChatMsgFallback(msg);
+    return;
+  }
+  fetch(GROQ_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: messages,
+      max_tokens: 400,
+      temperature: 0.75,
+      stream: false
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    // Remove typing indicator from history
+    chatHistory = chatHistory.filter(function(m){ return m.extraClass !== 'typing-msg'; });
+
+    var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if(reply){
+      _chatHistory.push({role:'assistant', content:reply});
+      addChatMsg('bot', reply);
+      // Suggest quick replies based on context
+      var lower = msg.toLowerCase();
+      if(lower.includes('nota') || lower.includes('promedio')){
+        renderQuickReplies(['📋 Ver mis notas','🏆 Cuadro de honor','📚 Cómo mejorar']);
+      } else if(lower.includes('inscri') || lower.includes('matricul')){
+        renderQuickReplies(['📝 Ir a inscripciones','📞 Contactar secretaría','⏰ Horario de oficina']);
+      } else {
+        renderQuickReplies(['👍 Gracias','❓ Otra pregunta','📍 Contacto del centro']);
+      }
+    } else {
+      throw new Error('No reply');
+    }
+  })
+  .catch(function(){
+    chatHistory = chatHistory.filter(function(m){ return m.extraClass !== 'typing-msg'; });
+    processChatMsgFallback(msg);
+  });
+}
+
+function processChatMsgFallback(msg){
   var lower=msg.toLowerCase();
   var keys=Object.keys(CHAT_KNOWLEDGE);
   for(var i=0;i<keys.length;i++){
     var entry=CHAT_KNOWLEDGE[keys[i]];
     if(entry.keys.some(function(kw){return lower.indexOf(kw)!==-1;})){
       addChatMsg('bot',entry.resp);
-      renderQuickReplies(['👍 Entendido','¿Algo más?','📍 Contacto del centro']);
+      renderQuickReplies(['👍 Entendido','❓ Otra pregunta','📍 Contacto del centro']);
       return;
     }
   }
-  if(lower.indexOf('promedio')!==-1||lower.indexOf('como voy')!==-1){
-    var gpa=document.getElementById('st-gpa');
-    var avg=gpa&&gpa.textContent!=='—'?gpa.textContent:'aún no disponible';
-    addChatMsg('bot','📊 Tu promedio general actual es **'+avg+'**. Recuerda: mínimo 65 para aprobar, 80+ Meritorio, 90+ Cuadro de Honor. ¡Tú puedes!');
-    return;
-  }
-  if(lower.indexOf('hola')!==-1||lower.indexOf('buenas')!==-1||lower.indexOf('buenos')!==-1){
-    addChatMsg('bot','😊 ¡Hola! Estoy aquí para orientarte. Puedo ayudarte con inscripciones, notas, horarios, anuncios del centro y más.');
+  if(lower.indexOf('hola')!==-1||lower.indexOf('buenas')!==-1){
+    addChatMsg('bot','¡Hola! 😊 Estoy aquí para ayudarte. Pregúntame lo que necesites sobre el centro o cualquier otra cosa.');
     renderQuickReplies(['📝 Inscripciones','📋 Mis notas','⏰ Horario','📍 Ubicación']);
     return;
   }
-  if(lower.indexOf('gracias')!==-1||lower.indexOf('perfecto')!==-1||lower.indexOf('ok')!==-1){
-    addChatMsg('bot','¡Con gusto! 😊 Si tienes más preguntas, aquí estaré. ¡Mucho éxito!');
-    renderQuickReplies(['📝 Otra pregunta','👋 Cerrar chat']);
-    return;
-  }
-  if(lower.indexOf('cerrar')!==-1||lower.indexOf('adios')!==-1||lower.indexOf('bye')!==-1){
-    addChatMsg('bot','¡Hasta luego! 👋 Que tengas un excelente día en el centro.');
-    setTimeout(function(){toggleChat();chatOpen=false;var win=document.getElementById('chat-window');if(win)win.style.display='none';},1500);
-    return;
-  }
-  var lastAnn=APP.announcements&&APP.announcements[0];
-  if(lower.indexOf('nuevo')!==-1||lower.indexOf('reciente')!==-1||lower.indexOf('ultimo')!==-1){
-    if(lastAnn){addChatMsg('bot','📢 El anuncio más reciente: **"'+lastAnn.titulo+'"** — '+lastAnn.desc.substring(0,80)+'... Ve a la pestaña Anuncios para verlo completo.');}
-    else{addChatMsg('bot','📢 No hay anuncios recientes ahora mismo. ¡Revísalos pronto!');}
-    return;
-  }
-  addChatMsg('bot','Hmm, no tengo información exacta sobre eso 🤔 Pero puedo orientarte sobre inscripciones, notas, horarios, anuncios y datos del centro. ¿Qué necesitas?');
-  renderQuickReplies(['📝 Inscripciones','📋 Notas','⏰ Horario','📍 Contacto']);
+  addChatMsg('bot','No tengo conexión en este momento 😔 pero puedo ayudarte con inscripciones, notas y datos del centro. ¿Qué necesitas?');
+  renderQuickReplies(['📝 Inscripciones','📋 Notas','📍 Contacto']);
 }
 
 function showChatWidget(show){
@@ -3042,7 +3137,7 @@ if(!APP.botConfig)APP.botConfig={
   bienvenida:'¡Hola {nombre}! 👋 Soy el Asistente Otilia, tu ayudante virtual del Centro Educativo. ¿En qué puedo ayudarte hoy?',
   despedida:'¡Hasta luego! 👋 Que tengas un excelente día en el centro.',
   quickReplies:'📝 Inscripciones,📋 Ver mis notas,⏰ Horario escolar,📢 Anuncios,📍 Contacto',
-  autoAusencias:true, autoNotas:true, autoAnuncios:true, autoIa:false, iaKey:'',
+  autoAusencias:true, autoNotas:true, autoAnuncios:true, autoIa:true, iaKey:(function(){try{return localStorage.getItem('_obot_k')||'';}catch(e){return '';}}()),
   autoBadge:true, autoOpen:false, delay:600,
   horaInicio:'07:00', horaFin:'18:00', siempreActivo:true,
   dias:{lun:true,mar:true,mie:true,jue:true,vie:true,sab:false,dom:false},
