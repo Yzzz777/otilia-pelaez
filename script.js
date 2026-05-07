@@ -8067,3 +8067,345 @@ function renderDeportePanel(){
     setInterval(updateClock, 1000);
 })();
 
+
+
+// =====================================================================
+//  PÁGINA WEB — Gestión admin de secciones públicas
+//  Uniforme, Biblioteca, Clubes, Comedor — CRUD completo
+// =====================================================================
+
+var _PW_DEFAULTS = {
+  uniformes: [
+    { id:1, nivel:'Nivel Primario', grado:'1° – 6° grado', emoji:'👕',
+      bgColor:'#1e40af', bgColor2:'#3b82f6',
+      items:[
+        {dot:'#1e40af',label:'Camisa',value:'Polo azul marino con logo'},
+        {dot:'#6b7280',label:'Pantalón/Falda',value:'Gris liso'},
+        {dot:'#1e3a5f',label:'Zapatos',value:'Negros cerrados'},
+        {dot:'#9ca3af',label:'Medias',value:'Blancas o grises'},
+        {dot:'#d4af37',label:'Distintivo',value:'Escudo del centro'}
+      ]
+    },
+    { id:2, nivel:'Nivel Secundario', grado:'1° – 4° grado', emoji:'👔',
+      bgColor:'#065f46', bgColor2:'#16a34a',
+      items:[
+        {dot:'#065f46',label:'Camisa',value:'Camisa verde botones'},
+        {dot:'#1f2937',label:'Pantalón/Falda',value:'Negro liso'},
+        {dot:'#1e3a5f',label:'Zapatos',value:'Negros cerrados'},
+        {dot:'#374151',label:'Medias',value:'Negras'},
+        {dot:'#d4af37',label:'Corbatín',value:'Obligatorio varones'}
+      ]
+    },
+    { id:3, nivel:'Educación Física', grado:'Todos los niveles', emoji:'🏃',
+      bgColor:'#7c1d1d', bgColor2:'#dc2626',
+      items:[
+        {dot:'#dc2626',label:'Jersey',value:'Rojo con logo del centro'},
+        {dot:'#1f2937',label:'Shorts/Licra',value:'Negro'},
+        {dot:'#6b7280',label:'Tenis',value:'Deportivos (cualquier color)'},
+        {dot:'#f0f0f0',label:'Medias',value:'Blancas'},
+        {dot:'#f5c518',label:'Nota',value:'Solo en días de Ed. Física'}
+      ]
+    }
+  ],
+  uniformeNota: 'El uniforme debe portarse limpio y completo todos los días. No se permiten accesorios excesivos, cabello teñido de colores llamativos, ni ropa interior visible. El incumplimiento puede generar una nota de conducta. Uniformes disponibles en secretaría.',
+  biblioStats: [
+    {id:1,icon:'📖',num:'2,000+',label:'Títulos disponibles'},
+    {id:2,icon:'🗞️',num:'15+',label:'Revistas y periódicos'},
+    {id:3,icon:'💻',num:'10',label:'Computadoras de acceso'},
+    {id:4,icon:'⏰',num:'7:30–4:30',label:'Horario Lun–Vie'}
+  ],
+  biblioNormas: [
+    'Presentar credencial escolar al ingresar',
+    'Préstamo de libros máximo 7 días hábiles',
+    'Silencio y respeto dentro del área',
+    'No ingresar alimentos ni bebidas',
+    'Devolver libros en buen estado'
+  ],
+  biblioColecciones: [
+    {id:1,icon:'🔬',nombre:'Ciencias y Tecnología',cantidad:'480',color:'#3b82f6',badgeBg:'rgba(59,130,246,0.3)',badgeColor:'#93c5fd'},
+    {id:2,icon:'📜',nombre:'Historia y Ciencias Sociales',cantidad:'360',color:'#16a34a',badgeBg:'rgba(22,163,74,0.3)',badgeColor:'#86efac'},
+    {id:3,icon:'📝',nombre:'Literatura y Lengua Española',cantidad:'520',color:'#d4af37',badgeBg:'rgba(212,175,55,0.3)',badgeColor:'#fde047'},
+    {id:4,icon:'➗',nombre:'Matemáticas y Estadística',cantidad:'290',color:'#dc2626',badgeBg:'rgba(220,38,38,0.3)',badgeColor:'#fca5a5'},
+    {id:5,icon:'🌍',nombre:'Inglés y Francés',cantidad:'200',color:'#7c3aed',badgeBg:'rgba(124,58,237,0.3)',badgeColor:'#c4b5fd'},
+    {id:6,icon:'🕊️',nombre:'Religión y Valores',cantidad:'150',color:'#0891b2',badgeBg:'rgba(8,145,178,0.3)',badgeColor:'#67e8f9'}
+  ],
+  clubes: [
+    {id:1,nombre:'Club de Teatro',icon:'🎭',descripcion:'Obras y presentaciones culturales anuales con participación estudiantil.',horario:'Viernes · 3:00 PM',color:'#f59e0b'},
+    {id:2,nombre:'Club de Debate',icon:'💬',descripcion:'Oratoria, argumentación y pensamiento crítico para todos los niveles.',horario:'Martes · 2:30 PM',color:'#3b82f6'},
+    {id:3,nombre:'Club de Ciencias',icon:'🔬',descripcion:'Experimentos, feria científica y proyectos de investigación escolar.',horario:'Miércoles · 3:00 PM',color:'#16a34a'},
+    {id:4,nombre:'Equipos Deportivos',icon:'⚽',descripcion:'Fútbol, baloncesto y voleibol con torneos interescolares del distrito.',horario:'Lun–Jue · 4:00 PM',color:'#dc2626'},
+    {id:5,nombre:'Club de Arte',icon:'🎨',descripcion:'Pintura, manualidades y exposición de obras al final de cada año.',horario:'Jueves · 2:30 PM',color:'#7c3aed'},
+    {id:6,nombre:'Club de Tecnología',icon:'💻',descripcion:'Programación básica, diseño digital y robótica educativa.',horario:'Viernes · 2:00 PM',color:'#0891b2'},
+    {id:7,nombre:'Banda Escolar',icon:'🎵',descripcion:'Música, canto y presentaciones en actos patrios y culturales.',horario:'Miércoles · 2:00 PM',color:'#be185d'},
+    {id:8,nombre:'Eco-Club',icon:'🌿',descripcion:'Reciclaje, huerto escolar y conciencia ambiental en el centro.',horario:'Lunes · 3:00 PM',color:'#d97706'}
+  ],
+  comedor: [
+    {id:1,nombre:'Desayuno Escolar',icon:'🥣',descripcion:'Leche, cereales y frutas frescas cada mañana para energizar el aprendizaje.',horario:'7:30 – 8:00 AM',bgStart:'#fef9c3',bgEnd:'#fef3c7',borderColor:'#f59e0b',btnBg:'#f59e0b',titColor:'#92400e'},
+    {id:2,nombre:'Almuerzo Balanceado',icon:'🍽️',descripcion:'Menú variado según guías nutricionales del MINERD con proteínas y vegetales.',horario:'12:00 – 12:45 PM',bgStart:'#ecfdf5',bgEnd:'#d1fae5',borderColor:'#16a34a',btnBg:'#16a34a',titColor:'#14532d'},
+    {id:3,nombre:'Merienda Tarde',icon:'🥤',descripcion:'Jugo natural o leche con galletas para la jornada extendida de la tarde.',horario:'3:30 – 4:00 PM',bgStart:'#eff6ff',bgEnd:'#dbeafe',borderColor:'#3b82f6',btnBg:'#3b82f6',titColor:'#1e3a8a'},
+    {id:4,nombre:'Dietas Especiales',icon:'🥗',descripcion:'Menú adaptado para estudiantes con necesidades alimenticias especiales. Solicitar en enfermería.',horario:'Solicitar en secretaría',bgStart:'#fdf4ff',bgEnd:'#fae8ff',borderColor:'#9333ea',btnBg:'#9333ea',titColor:'#581c87'}
+  ]
+};
+
+if(!APP.pagWeb) APP.pagWeb = JSON.parse(JSON.stringify(_PW_DEFAULTS));
+if(PERSIST_KEYS.indexOf('pagWeb')===-1) PERSIST_KEYS.push('pagWeb');
+
+function _getPW(k){ return (APP.pagWeb&&APP.pagWeb[k]!=null)?APP.pagWeb[k]:JSON.parse(JSON.stringify(_PW_DEFAULTS[k]||[])); }
+function _setPW(k,v){ if(!APP.pagWeb)APP.pagWeb={}; APP.pagWeb[k]=v; persistSave(); }
+function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── PUBLIC RENDERS ──────────────────────────────────────────────
+function renderUniformePublic(){
+  var el=document.getElementById('uniforme-public-content'); if(!el)return;
+  var data=_getPW('uniformes'), nota=_getPW('uniformeNota');
+  el.innerHTML='<div class="section-title"><h2>Uniforme <span>Escolar</span></h2><div class="divider"></div><p style="color:#666;font-size:14px;margin-top:12px;">Presentación correcta como parte de nuestra identidad institucional</p></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:36px;">'
+    +data.map(function(u){
+      return '<div class="uniforme-card">'
+        +'<div class="uniforme-header" style="background:linear-gradient(135deg,'+_esc(u.bgColor)+','+_esc(u.bgColor2)+')">'
+        +'<div style="font-size:48px;margin-bottom:10px;">'+_esc(u.emoji)+'</div>'
+        +'<h3>'+_esc(u.nivel)+'</h3><p>'+_esc(u.grado)+'</p></div>'
+        +'<div class="uniforme-body">'
+        +(u.items||[]).map(function(it){
+          return '<div class="uniforme-item"><span class="uni-dot" style="background:'+_esc(it.dot)+';border:1px solid #ddd"></span><strong>'+_esc(it.label)+':</strong>&nbsp;'+_esc(it.value)+'</div>';
+        }).join('')+'</div></div>';
+    }).join('')+'</div>'
+    +(nota?'<div style="margin-top:28px;background:#fef9c3;border:1px solid #fde047;border-radius:14px;padding:20px 24px;display:flex;align-items:flex-start;gap:14px;"><div style="font-size:28px;flex-shrink:0;">📌</div><div><strong style="color:#854d0e;">Normas del uniforme:</strong><p style="color:#713f12;font-size:13px;margin:6px 0 0;line-height:1.6;">'+_esc(nota)+'</p></div></div>':'');
+}
+
+function renderBibliotecaPublic(){
+  var el=document.getElementById('biblioteca-public-content'); if(!el)return;
+  var stats=_getPW('biblioStats'), normas=_getPW('biblioNormas'), cols=_getPW('biblioColecciones');
+  el.innerHTML='<div style="text-align:center;margin-bottom:40px;">'
+    +'<h2 style="font-family:\'Playfair Display\',serif;color:white;font-size:32px;margin:0 0 10px;">📚 Biblioteca <span style="color:var(--gold);">Escolar</span></h2>'
+    +'<p style="color:rgba(255,255,255,0.6);font-size:14px;">Recursos educativos disponibles para nuestra comunidad</p></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;">'
+    +'<div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">'
+    +stats.map(function(s){return '<div class="biblio-stat-card"><div style="font-size:32px;margin-bottom:8px;">'+_esc(s.icon)+'</div><div style="font-size:1.6rem;font-weight:900;color:var(--gold);font-family:\'Playfair Display\',serif;">'+_esc(s.num)+'</div><div style="font-size:12px;color:rgba(255,255,255,0.7);">'+_esc(s.label)+'</div></div>';}).join('')
+    +'</div><div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:20px;">'
+    +'<h4 style="color:var(--gold);margin:0 0 14px;font-size:14px;">📋 Normas de uso:</h4>'
+    +'<ul style="color:rgba(255,255,255,0.75);font-size:13px;line-height:2;padding-left:16px;margin:0;">'
+    +normas.map(function(n){return '<li>'+_esc(n)+'</li>';}).join('')+'</ul></div></div>'
+    +'<div><h4 style="color:var(--gold);font-size:15px;margin:0 0 16px;">📂 Colecciones disponibles:</h4>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;">'
+    +cols.map(function(c){return '<div class="biblio-categoria" style="--cat-color:'+_esc(c.color)+'"><span style="font-size:22px;">'+_esc(c.icon)+'</span><div style="flex:1;"><div style="color:white;font-weight:700;font-size:13px;">'+_esc(c.nombre)+'</div><div style="color:rgba(255,255,255,0.5);font-size:11px;">'+_esc(c.cantidad)+' títulos</div></div><div style="background:'+_esc(c.badgeBg)+';color:'+_esc(c.badgeColor)+';border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">Disponible</div></div>';}).join('')
+    +'</div></div></div>';
+}
+
+function renderClubesPublic(){
+  var el=document.getElementById('clubes-public-content'); if(!el)return;
+  var data=_getPW('clubes');
+  el.innerHTML='<div class="section-title"><h2>Clubes y <span>Actividades</span></h2><div class="divider"></div><p style="color:#666;font-size:14px;margin-top:12px;">Desarrollo integral más allá del aula</p></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-top:36px;">'
+    +data.map(function(c){return '<div class="club-card" style="--club-color:'+_esc(c.color)+'"><div class="club-icon">'+_esc(c.icon)+'</div><h4>'+_esc(c.nombre)+'</h4><p>'+_esc(c.descripcion)+'</p><div class="club-tag">'+_esc(c.horario)+'</div></div>';}).join('')
+    +'</div><div style="text-align:center;margin-top:30px;"><p style="color:#666;font-size:13px;margin-bottom:14px;">Las inscripciones se realizan a inicio de cada trimestre en secretaría.</p><button class="btn-primary" onclick="showPage(\'inscripcion\')">📝 Inscribirse →</button></div>';
+}
+
+function renderComedorPublic(){
+  var el=document.getElementById('comedor-public-content'); if(!el)return;
+  var data=_getPW('comedor');
+  el.innerHTML='<div class="section-title"><h2>Programa de <span>Alimentación Escolar</span></h2><div class="divider"></div><p style="color:#666;font-size:14px;margin-top:12px;">Nutrición balanceada para el desempeño académico</p></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:36px;">'
+    +data.map(function(s){return '<div style="background:linear-gradient(135deg,'+_esc(s.bgStart)+','+_esc(s.bgEnd)+');border-radius:20px;padding:28px 20px;text-align:center;border-top:4px solid '+_esc(s.borderColor)+';transition:transform .25s;" onmouseover="this.style.transform=\'translateY(-5px)\'" onmouseout="this.style.transform=\'translateY(0)\'"><div style="font-size:40px;margin-bottom:14px;">'+_esc(s.icon)+'</div><h4 style="color:'+_esc(s.titColor)+';font-size:15px;margin:0 0 8px;">'+_esc(s.nombre)+'</h4><p style="font-size:12px;color:'+_esc(s.titColor)+';line-height:1.6;margin:0 0 12px;opacity:.85;">'+_esc(s.descripcion)+'</p><div style="background:'+_esc(s.btnBg)+';color:white;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:800;">'+_esc(s.horario)+'</div></div>';}).join('')
+    +'</div><div style="margin-top:28px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><div style="font-size:32px;">🍀</div><div style="flex:1;"><strong style="color:#14532d;">Programa PAE — MINERD</strong><p style="color:#166534;font-size:13px;margin:4px 0 0;line-height:1.5;">Participamos del Programa de Alimentación Escolar del Ministerio de Educación. Alimentación gratuita para todos los estudiantes matriculados.</p></div><a href="https://www.ministeriodeeducacion.gob.do" target="_blank" style="background:#16a34a;color:white;border-radius:25px;padding:10px 20px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;">Ver MINERD →</a></div>';
+}
+
+function renderAllPagWeb(){
+  renderUniformePublic(); renderBibliotecaPublic(); renderClubesPublic(); renderComedorPublic();
+}
+
+// ── ADMIN ───────────────────────────────────────────────────────
+function initPagWebAdmin(){
+  renderPWAdminAll();
+  var ta=document.getElementById('pw-uniforme-nota'); if(ta) ta.value=_getPW('uniformeNota')||'';
+}
+function showPagWebTab(id,btn){
+  document.querySelectorAll('.pagweb-section').forEach(function(e){e.classList.remove('active');});
+  document.querySelectorAll('.pagweb-tab').forEach(function(b){b.classList.remove('active');});
+  var el=document.getElementById(id); if(el)el.classList.add('active'); if(btn)btn.classList.add('active');
+}
+function showBibAdmTab(id,btn){
+  document.querySelectorAll('.bib-adm-section').forEach(function(e){e.classList.remove('active');});
+  document.querySelectorAll('.bibadm-tab').forEach(function(b){b.classList.remove('active');});
+  var el=document.getElementById(id); if(el)el.classList.add('active'); if(btn)btn.classList.add('active');
+}
+function renderPWAdminAll(){ renderPWAdminUniformes(); renderPWAdminBiblioStats(); renderPWAdminBiblioNormas(); renderPWAdminBiblioColecciones(); renderPWAdminClubes(); renderPWAdminComedor(); }
+
+function _pwRow(emoji,title,sub,editCall,delCall){
+  return '<div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:#fafaf8;">'
+    +'<span style="font-size:26px;">'+emoji+'</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;color:var(--navy);">'+title+'</div><div style="font-size:11px;color:#888;">'+sub+'</div></div>'
+    +'<button onclick="'+editCall+'" style="background:#e0f2fe;color:#0369a1;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px;">✏️ Editar</button>'
+    +'<button onclick="'+delCall+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;">🗑</button>'
+    +'</div>';
+}
+function renderPWAdminUniformes(){
+  var el=document.getElementById('pw-uniformes-list'); if(!el)return;
+  var data=_getPW('uniformes');
+  if(!data.length){el.innerHTML='<p style="color:#888;font-size:13px;padding:12px;">Sin niveles de uniforme.</p>';return;}
+  el.innerHTML=data.map(function(u,i){return _pwRow(_esc(u.emoji),_esc(u.nivel),_esc(u.grado)+' · '+u.items.length+' prendas',"editPWItem('uniforme',"+i+")","deletePWItem('uniformes',"+i+")");}).join('');
+}
+function renderPWAdminBiblioStats(){
+  var el=document.getElementById('pw-biblio-stats-list'); if(!el)return;
+  var data=_getPW('biblioStats');
+  el.innerHTML=data.map(function(s,i){return _pwRow(_esc(s.icon),'<b>'+_esc(s.num)+'</b>',_esc(s.label),"editPWItem('biblioStat',"+i+")","deletePWItem('biblioStats',"+i+")");}).join('');
+}
+function renderPWAdminBiblioNormas(){
+  var el=document.getElementById('pw-biblio-normas-list'); if(!el)return;
+  var data=_getPW('biblioNormas');
+  el.innerHTML=data.map(function(n,i){return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;background:#fafaf8;"><span style="color:var(--gold);font-weight:800;">•</span><span style="flex:1;font-size:13px;">'+_esc(n)+'</span><button onclick="deletePWItem(\'biblioNormas\','+i+')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700;">🗑</button></div>';}).join('');
+}
+function renderPWAdminBiblioColecciones(){
+  var el=document.getElementById('pw-biblio-col-list'); if(!el)return;
+  var data=_getPW('biblioColecciones');
+  el.innerHTML=data.map(function(c,i){return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-left:4px solid '+_esc(c.color)+';border-radius:8px;margin-bottom:8px;background:#fafaf8;"><span style="font-size:22px;">'+_esc(c.icon)+'</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;">'+_esc(c.nombre)+'</div><div style="font-size:11px;color:#888;">'+_esc(c.cantidad)+' títulos</div></div><button onclick="editPWItem(\'biblioCol\','+i+')" style="background:#e0f2fe;color:#0369a1;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px;">✏️</button><button onclick="deletePWItem(\'biblioColecciones\','+i+')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:700;">🗑</button></div>';}).join('');
+}
+function renderPWAdminClubes(){
+  var el=document.getElementById('pw-clubes-list'); if(!el)return;
+  var data=_getPW('clubes');
+  if(!data.length){el.innerHTML='<p style="color:#888;font-size:13px;padding:12px;">Sin clubes.</p>';return;}
+  el.innerHTML=data.map(function(c,i){return '<div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--border);border-left:4px solid '+_esc(c.color)+';border-radius:10px;margin-bottom:8px;background:#fafaf8;"><span style="font-size:26px;">'+_esc(c.icon)+'</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;">'+_esc(c.nombre)+'</div><div style="font-size:11px;color:#888;">'+_esc(c.horario)+'</div></div><button onclick="editPWItem(\'club\','+i+')" style="background:#e0f2fe;color:#0369a1;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px;">✏️ Editar</button><button onclick="deletePWItem(\'clubes\','+i+')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;">🗑</button></div>';}).join('');
+}
+function renderPWAdminComedor(){
+  var el=document.getElementById('pw-comedor-list'); if(!el)return;
+  var data=_getPW('comedor');
+  if(!data.length){el.innerHTML='<p style="color:#888;font-size:13px;padding:12px;">Sin servicios.</p>';return;}
+  el.innerHTML=data.map(function(s,i){return '<div style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:linear-gradient(135deg,'+_esc(s.bgStart)+','+_esc(s.bgEnd)+');border:1px solid var(--border);border-radius:10px;margin-bottom:8px;"><span style="font-size:26px;">'+_esc(s.icon)+'</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;color:'+_esc(s.titColor)+'">'+_esc(s.nombre)+'</div><div style="font-size:11px;color:'+_esc(s.titColor)+';">'+_esc(s.horario)+'</div></div><button onclick="editPWItem(\'comedor\','+i+')" style="background:rgba(255,255,255,0.8);color:#333;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px;">✏️ Editar</button><button onclick="deletePWItem(\'comedor\','+i+')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;">🗑</button></div>';}).join('');
+}
+
+function deletePWItem(key,idx){
+  if(!confirm('¿Eliminar este elemento?')) return;
+  var arr=_getPW(key); arr.splice(idx,1); _setPW(key,arr);
+  renderPWAdminAll(); renderAllPagWeb(); toast('Eliminado','info');
+}
+
+var _pwEditType=null, _pwEditIdx=-1;
+function openPWModal(type,idx){
+  _pwEditType=type; _pwEditIdx=(idx!=null?idx:-1); var isEdit=idx!=null;
+  var title='', body='', g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+
+  if(type==='uniforme'){
+    var d=isEdit?_getPW('uniformes')[idx]:{nivel:'',grado:'',emoji:'👕',bgColor:'#1e40af',bgColor2:'#3b82f6',items:[]};
+    title=(isEdit?'✏️ Editar':'➕ Nuevo')+' Nivel';
+    body='<div class="form-group"><label>Nombre del nivel *</label><input type="text" id="pw-m-nivel" value="'+_esc(d.nivel||'')+'" placeholder="Ej: Nivel Primario" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="form-group"><label>Grado</label><input type="text" id="pw-m-grado" value="'+_esc(d.grado||'')+'" placeholder="Ej: 1° – 6° grado" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div class="form-group"><label>Emoji</label><input type="text" id="pw-m-emoji" value="'+_esc(d.emoji||'👕')+'" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:20px;"></div>'
+      +'<div class="form-group"><label>Color 1</label><input type="color" id="pw-m-bg1" value="'+_esc(d.bgColor||'#1e40af')+'" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div class="form-group"><label>Color 2</label><input type="color" id="pw-m-bg2" value="'+_esc(d.bgColor2||'#3b82f6')+'" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;"></div></div>'
+      +'<div class="form-group"><label>Prendas <small style="color:#888;">(una por línea: color_hex|Nombre|Descripción)</small></label>'
+      +'<textarea id="pw-m-items" rows="6" placeholder="#1e40af|Camisa|Polo azul marino con logo" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;resize:vertical;">'+(d.items||[]).map(function(it){return it.dot+'|'+it.label+'|'+it.value;}).join('\n')+'</textarea></div>';
+  }
+  else if(type==='biblioStat'){
+    var d=isEdit?_getPW('biblioStats')[idx]:{icon:'📖',num:'',label:''};
+    title=(isEdit?'✏️ Editar':'➕ Nueva')+' Estadística';
+    body='<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;">'
+      +'<div class="form-group"><label>Icono</label><input type="text" id="pw-m-icon" value="'+_esc(d.icon||'📖')+'" style="width:70px;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:20px;"></div>'
+      +'<div class="form-group"><label>Valor *</label><input type="text" id="pw-m-num" value="'+_esc(d.num||'')+'" placeholder="2,000+" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div class="form-group"><label>Etiqueta *</label><input type="text" id="pw-m-label" value="'+_esc(d.label||'')+'" placeholder="Títulos disponibles" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div></div>';
+  }
+  else if(type==='biblioCol'){
+    var d=isEdit?_getPW('biblioColecciones')[idx]:{icon:'📂',nombre:'',cantidad:'0',color:'#3b82f6',badgeBg:'rgba(59,130,246,0.3)',badgeColor:'#93c5fd'};
+    title=(isEdit?'✏️ Editar':'➕ Nueva')+' Colección';
+    body='<div style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;">'
+      +'<div class="form-group"><label>Icono</label><input type="text" id="pw-m-icon" value="'+_esc(d.icon||'📂')+'" style="width:70px;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:20px;"></div>'
+      +'<div class="form-group"><label>Nombre *</label><input type="text" id="pw-m-nombre" value="'+_esc(d.nombre||'')+'" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div class="form-group"><label>Cantidad</label><input type="text" id="pw-m-cantidad" value="'+_esc(d.cantidad||'0')+'" style="width:80px;padding:9px;border:1px solid var(--border);border-radius:8px;"></div></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'
+      +'<div class="form-group"><label>Color borde</label><input type="color" id="pw-m-color" value="'+_esc(d.color||'#3b82f6')+'" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div class="form-group"><label>BG badge</label><input type="text" id="pw-m-bbg" value="'+_esc(d.badgeBg||'')+'" placeholder="rgba(59,130,246,0.3)" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:11px;"></div>'
+      +'<div class="form-group"><label>Color texto badge</label><input type="color" id="pw-m-btxt" value="'+_esc((d.badgeColor||'#93c5fd').startsWith('#')?d.badgeColor:'#93c5fd')+'" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;"></div></div>';
+  }
+  else if(type==='club'){
+    var d=isEdit?_getPW('clubes')[idx]:{nombre:'',icon:'🎭',descripcion:'',horario:'',color:'#3b82f6'};
+    title=(isEdit?'✏️ Editar':'➕ Nuevo')+' Club';
+    body='<div style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;">'
+      +'<div class="form-group"><label>Icono</label><input type="text" id="pw-m-icon" value="'+_esc(d.icon||'🎭')+'" style="width:70px;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:20px;"></div>'
+      +'<div class="form-group"><label>Nombre *</label><input type="text" id="pw-m-nombre" value="'+_esc(d.nombre||'')+'" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div class="form-group"><label>Color</label><input type="color" id="pw-m-color" value="'+_esc(d.color||'#3b82f6')+'" style="width:60px;height:38px;border:1px solid var(--border);border-radius:8px;"></div></div>'
+      +'<div class="form-group"><label>Descripción *</label><textarea id="pw-m-desc" rows="2" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:\'Nunito\',sans-serif;resize:vertical;">'+_esc(d.descripcion||'')+'</textarea></div>'
+      +'<div class="form-group"><label>Horario</label><input type="text" id="pw-m-horario" value="'+_esc(d.horario||'')+'" placeholder="Ej: Viernes · 3:00 PM" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>';
+  }
+  else if(type==='comedor'){
+    var d=isEdit?_getPW('comedor')[idx]:{nombre:'',icon:'🍽️',descripcion:'',horario:'',bgStart:'#f8fafc',bgEnd:'#f1f5f9',borderColor:'#3b82f6',btnBg:'#3b82f6',titColor:'#1e3a8a'};
+    title=(isEdit?'✏️ Editar':'➕ Nuevo')+' Servicio';
+    body='<div style="display:grid;grid-template-columns:auto 1fr;gap:10px;">'
+      +'<div class="form-group"><label>Icono</label><input type="text" id="pw-m-icon" value="'+_esc(d.icon||'🍽️')+'" style="width:70px;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:20px;"></div>'
+      +'<div class="form-group"><label>Nombre *</label><input type="text" id="pw-m-nombre" value="'+_esc(d.nombre||'')+'" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div></div>'
+      +'<div class="form-group"><label>Descripción</label><textarea id="pw-m-desc" rows="2" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:\'Nunito\',sans-serif;resize:vertical;">'+_esc(d.descripcion||'')+'</textarea></div>'
+      +'<div class="form-group"><label>Horario</label><input type="text" id="pw-m-horario" value="'+_esc(d.horario||'')+'" placeholder="Ej: 7:30 – 8:00 AM" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;"></div>'
+      +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">'
+      +'<div class="form-group"><label style="font-size:11px;">BG inicio</label><input type="color" id="pw-m-bgs" value="'+_esc(d.bgStart)+'" style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;"></div>'
+      +'<div class="form-group"><label style="font-size:11px;">BG fin</label><input type="color" id="pw-m-bge" value="'+_esc(d.bgEnd)+'" style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;"></div>'
+      +'<div class="form-group"><label style="font-size:11px;">Borde</label><input type="color" id="pw-m-border" value="'+_esc(d.borderColor)+'" style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;"></div>'
+      +'<div class="form-group"><label style="font-size:11px;">Botón</label><input type="color" id="pw-m-btn" value="'+_esc(d.btnBg)+'" style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;"></div>'
+      +'<div class="form-group"><label style="font-size:11px;">Título</label><input type="color" id="pw-m-tit" value="'+_esc(d.titColor)+'" style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;"></div></div>';
+  }
+
+  var overlay=document.createElement('div'); overlay.id='pw-modal-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99990;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML='<div style="background:white;border-radius:16px;padding:28px;max-width:560px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h3 style="margin:0;font-family:\'Playfair Display\',serif;color:var(--navy);">'+title+'</h3>'
+    +'<button onclick="closePWModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">✕</button></div>'
+    +body
+    +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">'
+    +'<button onclick="closePWModal()" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-family:\'Nunito\',sans-serif;font-weight:700;">Cancelar</button>'
+    +'<button onclick="savePWModal()" class="btn btn-gold" style="padding:10px 24px;">💾 Guardar</button></div></div>';
+  document.body.appendChild(overlay);
+}
+
+function editPWItem(type,idx){ openPWModal(type,idx); }
+function closePWModal(){ var o=document.getElementById('pw-modal-overlay'); if(o)o.remove(); }
+
+function savePWModal(){
+  var type=_pwEditType, idx=_pwEditIdx, isEdit=idx>=0;
+  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+
+  if(type==='uniforme'){
+    if(!g('pw-m-nivel')){toast('El nombre es obligatorio','error');return;}
+    var itemsRaw=g('pw-m-items').split('\n').filter(function(l){return l.trim();});
+    var items=itemsRaw.map(function(l){var p=l.split('|');return{dot:(p[0]||'#888').trim(),label:(p[1]||'').trim(),value:(p[2]||'').trim()};});
+    var obj={id:Date.now(),nivel:g('pw-m-nivel'),grado:g('pw-m-grado'),emoji:g('pw-m-emoji')||'👕',bgColor:g('pw-m-bg1'),bgColor2:g('pw-m-bg2'),items:items};
+    var arr=_getPW('uniformes'); if(isEdit)arr[idx]=obj; else arr.push(obj); _setPW('uniformes',arr);
+  }
+  else if(type==='biblioStat'){
+    if(!g('pw-m-num')||!g('pw-m-label')){toast('Completa todos los campos','error');return;}
+    var obj={id:Date.now(),icon:g('pw-m-icon'),num:g('pw-m-num'),label:g('pw-m-label')};
+    var arr=_getPW('biblioStats'); if(isEdit)arr[idx]=obj; else arr.push(obj); _setPW('biblioStats',arr);
+  }
+  else if(type==='biblioCol'){
+    if(!g('pw-m-nombre')){toast('El nombre es obligatorio','error');return;}
+    var obj={id:Date.now(),icon:g('pw-m-icon'),nombre:g('pw-m-nombre'),cantidad:g('pw-m-cantidad')||'0',color:g('pw-m-color'),badgeBg:g('pw-m-bbg')||'rgba(59,130,246,0.3)',badgeColor:g('pw-m-btxt')};
+    var arr=_getPW('biblioColecciones'); if(isEdit)arr[idx]=obj; else arr.push(obj); _setPW('biblioColecciones',arr);
+  }
+  else if(type==='club'){
+    if(!g('pw-m-nombre')){toast('El nombre es obligatorio','error');return;}
+    var obj={id:Date.now(),nombre:g('pw-m-nombre'),icon:g('pw-m-icon'),descripcion:g('pw-m-desc'),horario:g('pw-m-horario'),color:g('pw-m-color')};
+    var arr=_getPW('clubes'); if(isEdit)arr[idx]=obj; else arr.push(obj); _setPW('clubes',arr);
+  }
+  else if(type==='comedor'){
+    if(!g('pw-m-nombre')){toast('El nombre es obligatorio','error');return;}
+    var obj={id:Date.now(),nombre:g('pw-m-nombre'),icon:g('pw-m-icon'),descripcion:g('pw-m-desc'),horario:g('pw-m-horario'),bgStart:g('pw-m-bgs'),bgEnd:g('pw-m-bge'),borderColor:g('pw-m-border'),btnBg:g('pw-m-btn'),titColor:g('pw-m-tit')};
+    var arr=_getPW('comedor'); if(isEdit)arr[idx]=obj; else arr.push(obj); _setPW('comedor',arr);
+  }
+
+  closePWModal(); renderPWAdminAll(); renderAllPagWeb();
+  toast((isEdit?'Actualizado':'Añadido')+' correctamente','success');
+}
+
+function addBiblioNorma(){
+  var input=document.getElementById('pw-norma-nueva');
+  if(!input||!input.value.trim()){toast('Escribe la norma','error');return;}
+  var arr=_getPW('biblioNormas'); arr.push(input.value.trim()); _setPW('biblioNormas',arr);
+  input.value=''; renderPWAdminBiblioNormas(); renderBibliotecaPublic(); toast('Norma añadida','success');
+}
+function saveUniformeNota(){
+  var ta=document.getElementById('pw-uniforme-nota'); if(!ta)return;
+  _setPW('uniformeNota',ta.value.trim()); renderUniformePublic(); toast('Nota guardada','success');
+}
+
+// Render on page load
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){ if(!APP.pagWeb)APP.pagWeb=JSON.parse(JSON.stringify(_PW_DEFAULTS)); renderAllPagWeb(); });
+} else {
+  if(!APP.pagWeb)APP.pagWeb=JSON.parse(JSON.stringify(_PW_DEFAULTS));
+  setTimeout(renderAllPagWeb,150);
+}

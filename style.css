@@ -9004,3 +9004,40 @@ body.dark-mode .page {
     }
     .uniforme-body { padding: 16px; }
 }
+
+/* --- Admin: Página Web tabs --- */
+.pagweb-tab {
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    transition: all 0.2s;
+}
+.pagweb-tab:hover { background: var(--gray); }
+.pagweb-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+.pagweb-section { display: none; }
+.pagweb-section.active { display: block; }
+
+.bibadm-tab {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    transition: all 0.2s;
+}
+.bibadm-tab:hover { background: #f0f4ff; }
+.bibadm-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+.bib-adm-section { display: none; }
+.bib-adm-section.active { display: block; }
