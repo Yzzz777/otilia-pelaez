@@ -1763,6 +1763,14 @@ function scrollToContacto(){
   },200);
 }
 
+function scrollToSeccion(id){
+  showPage('home');
+  setTimeout(function(){
+    var el=document.getElementById(id);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
+}
+
 // ===== GALERÍA =====
 if(!APP.galeria)APP.galeria=[];
 

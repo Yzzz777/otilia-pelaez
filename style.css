@@ -8361,9 +8361,15 @@ body.dark-mode ::-webkit-scrollbar-thumb { background:rgba(212,175,55,.25); }
   border-bottom: none !important;
   padding: 12px 16px !important;
   gap: 6px !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
   scrollbar-width: thin !important;
-  scrollbar-color: rgba(212,175,55,0.3) transparent !important;
+  scrollbar-color: rgba(212,175,55,0.4) rgba(255,255,255,0.05) !important;
 }
+#page-admin .dash-tabs::-webkit-scrollbar { height: 4px !important; }
+#page-admin .dash-tabs::-webkit-scrollbar-track { background: rgba(255,255,255,0.05) !important; border-radius: 4px !important; }
+#page-admin .dash-tabs::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.5) !important; border-radius: 4px !important; }
 #page-admin .dash-tab {
   background: rgba(255,255,255,0.06) !important;
   color: rgba(255,255,255,0.6) !important;
@@ -8834,4 +8840,167 @@ body.dark-mode .page {
 #page-profesor .dash-tabs {
   background: #f0f4ff !important;
   border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+}
+
+/* ============================================================
+   NUEVAS SECCIONES: UNIFORME, BIBLIOTECA, CLUBES, COMEDOR
+   ============================================================ */
+
+/* --- Uniforme Escolar --- */
+.uniforme-card {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+}
+.uniforme-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.16);
+}
+.uniforme-header {
+    padding: 32px 24px 24px;
+    text-align: center;
+    color: white;
+}
+.uniforme-header h3 {
+    font-size: 18px;
+    font-family: 'Playfair Display', serif;
+    margin: 8px 0 4px;
+    color: white;
+}
+.uniforme-header p {
+    font-size: 12px;
+    opacity: 0.85;
+    margin: 0;
+    color: white;
+}
+.uniforme-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+.uniforme-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.4;
+}
+.uni-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+/* --- Biblioteca Escolar --- */
+.biblio-stat-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: background 0.25s;
+}
+.biblio-stat-card:hover {
+    background: rgba(255,255,255,0.15);
+}
+.biblio-categoria {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 4px solid var(--cat-color, #d4af37);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: background 0.2s, transform 0.2s;
+}
+.biblio-categoria:hover {
+    background: rgba(255,255,255,0.11);
+    transform: translateX(4px);
+}
+
+/* --- Clubes Estudiantiles --- */
+.club-card {
+    background: white;
+    border-radius: 18px;
+    padding: 26px 20px;
+    text-align: center;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+    border-top: 4px solid var(--club-color, var(--gold));
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.club-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.13);
+}
+.club-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+}
+.club-card h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0 0 8px;
+    font-family: 'Playfair Display', serif;
+}
+.club-card p {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.65;
+    margin: 0 0 14px;
+}
+.club-tag {
+    display: inline-block;
+    background: #f0f4ff;
+    color: var(--navy);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid #e0e7ff;
+}
+
+/* --- Mejoras de botones con animación pulse --- */
+@keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(212,175,55,0); }
+}
+.btn-primary:focus, .btn-gold:focus {
+    animation: pulse-gold 1.5s ease;
+}
+
+/* --- Mejor animación de transición de secciones --- */
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+#seccion-uniforme,
+#seccion-biblioteca,
+#seccion-clubes,
+#seccion-comedor {
+    animation: fadeSlideUp 0.6s ease both;
+}
+
+/* --- Responsive para nuevas secciones --- */
+@media (max-width: 768px) {
+    #seccion-biblioteca > div > div:last-child {
+        grid-template-columns: 1fr !important;
+    }
+    .biblio-stat-card { padding: 14px 10px; }
+    .uniforme-card { margin-bottom: 4px; }
+    .club-card { padding: 20px 16px; }
+}
+@media (max-width: 480px) {
+    #seccion-biblioteca > div > div {
+        grid-template-columns: 1fr !important;
+    }
+    .uniforme-body { padding: 16px; }
 }
