@@ -5588,7 +5588,8 @@ body { -webkit-font-smoothing: antialiased; }
     animation: heroPulse 8s ease-in-out infinite alternate !important;
     pointer-events: none !important;
 }
-#hero > div {
+/* Solo el div principal del contenido del hero */
+#hero > div:not(.ap-float-shape):not(#ap-scanline):not(#ap-hero-wave):not(.stats-bar) {
     position: relative !important;
     z-index: 2 !important;
     width: 100% !important;
@@ -5597,6 +5598,16 @@ body { -webkit-font-smoothing: antialiased; }
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
+}
+/* Garantizar que los elementos inyectados siempre sean absolutos */
+#hero .ap-float-shape,
+#hero #ap-scanline,
+#hero #ap-hero-wave {
+    position: absolute !important;
+    display: block !important;
+    max-width: none !important;
+    margin: 0 !important;
+    flex: none !important;
 }
 .hero-badge { animation: fadeUp .6s var(--ease) both !important; }
 #hero h1 { animation: fadeUp .6s var(--ease) .15s both !important; }
