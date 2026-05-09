@@ -5460,18 +5460,35 @@ body { -webkit-font-smoothing: antialiased; }
 #public-navbar {
     position: sticky !important;
     top: 0 !important;
-    z-index: 900 !important;
-    background: rgba(255,255,255,.97) !important;
-    backdrop-filter: blur(12px) !important;
-    box-shadow: 0 2px 16px rgba(0,0,0,.1) !important;
+    z-index: 9000 !important;
+    background: rgba(10,20,45,.97) !important;
+    backdrop-filter: blur(16px) !important;
+    border-bottom: 2px solid var(--gold) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,.35) !important;
+    height: 64px !important;
 }
+#public-navbar .nav-logo-text h2 { color: white !important; }
+#public-navbar .nav-logo-text span { color: var(--gold-light) !important; }
 .pub-nav-links a {
+    color: rgba(255,255,255,.85) !important;
     transition: background .15s, color .15s !important;
 }
 .pub-nav-links a:hover {
-    background: var(--gold) !important;
-    color: var(--navy) !important;
+    background: rgba(212,175,55,.18) !important;
+    color: var(--gold) !important;
     border-radius: 8px !important;
+}
+#pub-nav-btns .pub-login-btn {
+    color: white !important;
+    border-color: rgba(255,255,255,.25) !important;
+}
+#pub-nav-btns .pub-login-btn:hover {
+    background: rgba(255,255,255,.1) !important;
+}
+#pub-nav-btns .pub-inscribir-btn {
+    background: linear-gradient(135deg,var(--gold),var(--gold-dark)) !important;
+    color: var(--navy) !important;
+    border-color: transparent !important;
 }
 
 /* Hamburguesa */
