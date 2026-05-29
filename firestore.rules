@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Función auxiliar: verificar si el usuario autenticado es admin ──
+    function isAdmin() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── Función auxiliar: usuario autenticado ──
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ── Función auxiliar: el usuario accede a su propio perfil ──
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  PERFILES DE USUARIO — /users/{uid}
+    // ══════════════════════════════════════════════════════════════
+    match /users/{uid} {
+      // Cada usuario puede leer su propio perfil
+      allow read: if isOwner(uid) || isAdmin();
+      // Solo admin puede crear/editar perfiles (excepto el propio usuario puede leer)
+      allow create: if isAuthenticated() && isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  DATOS PRINCIPALES — /otilia/{doc}
+    //  (config, datos, misc — los 3 chunks del sistema)
+    // ══════════════════════════════════════════════════════════════
+    match /otilia/{doc} {
+      // Cualquier usuario autenticado puede leer datos públicos del colegio
+      allow read: if isAuthenticated();
+      // Solo admin puede escribir datos del sistema
+      allow write: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  COLECCIONES FUTURAS (añadir según se agreguen)
+    // ══════════════════════════════════════════════════════════════
+
+    // Notas — profesores pueden escribir las suyas
+    match /notas/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() ||
+                     (isAuthenticated() &&
+                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'profesor');
+    }
+
+    // Inscripciones públicas — padres pueden crear la suya
+    match /inscripciones/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // Bloquear todo lo demás por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

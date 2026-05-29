@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Setup Firebase Auth — C.E. Otilia Peláez</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <style>
+    body { font-family: monospace; background: #0d1b3e; color: #d4af37; padding: 30px; }
+    h1 { color: #ffe066; }
+    .log { background: #06101f; border: 1px solid #2a3a6e; border-radius: 8px; padding: 16px; margin: 16px 0; height: 400px; overflow-y: auto; font-size: 13px; line-height: 1.7; }
+    button { background: #d4af37; color: #0d1b3e; border: none; padding: 12px 28px; font-size: 15px; font-weight: 700; border-radius: 8px; cursor: pointer; margin: 8px 4px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ok  { color: #22c55e; }
+    .err { color: #ef4444; }
+    .info{ color: #60a5fa; }
+    .warn{ color: #f59e0b; }
+    .warn-box { background: #7c2d12; border: 2px solid #ef4444; border-radius: 8px; padding: 14px; margin-bottom: 16px; color: #fca5a5; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🔐 Setup Firebase Authentication</h1>
+  <div class="warn-box">
+    ⚠️ <strong>ATENCIÓN:</strong> Esta página crea las cuentas del sistema en Firebase Auth.
+    <br>Ábrela <strong>una sola vez</strong> desde la red del colegio.
+    <br>Después de usarla, <strong>elimina o protege este archivo</strong>.
+  </div>
+
+  <button onclick="runSetup()" id="btn-setup">▶ Crear cuentas del sistema</button>
+  <button onclick="clearLog()">🗑 Limpiar log</button>
+
+  <div class="log" id="log"></div>
+
+  <script>
+  const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyBFJtMciX8UpsxsXEoyeyQIrEDGuPDMOAQ",
+    authDomain:        "otilia-pelaez.firebaseapp.com",
+    projectId:         "otilia-pelaez",
+    storageBucket:     "otilia-pelaez.firebasestorage.app",
+    messagingSenderId: "113441115421",
+    appId:             "1:113441115421:web:503584c9b5810d7dc8a5f4"
+  };
+
+  // ── CUENTAS DEL SISTEMA ────────────────────────────────────────
+  // Cambia las contraseñas ANTES de correr este script si quieres usar nuevas
+  const SYSTEM_ACCOUNTS = [
+    { email:'otiliapelaezadm@gmail.com',  password:'otiliapelaezadmin1',  role:'admin',      name:'Administración' },
+    { email:'profeoti12@gmail.com',         password:'PROFESOTILIA@121',    role:'profesor',   name:'Profesor(a)' },
+    { email:'enfermeriaoti@gmail.com',      password:'ENFEROTI@2025',       role:'enfermeria', name:'Enfermería' },
+    { email:'secretariaoti@gmail.com',      password:'SECRETOTI@2025',      role:'secretaria', name:'Secretaría' },
+    { email:'directoraoti@gmail.com',       password:'DIROTILAEZ@2025',     role:'directora',  name:'Directora' },
+    { email:'orientacionoti@gmail.com',     password:'ORIENTOTI@2025',      role:'orientacion',name:'Orientación' },
+    { email:'deporteoti@gmail.com',         password:'DEPORTOTI@2025',      role:'deporte',    name:'Ed. Física / Deporte' }
+  ];
+
+  var app, db, auth;
+
+  function log(msg, type) {
+    var el = document.getElementById('log');
+    var span = document.createElement('span');
+    span.className = type || 'info';
+    span.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+    el.appendChild(span);
+    el.appendChild(document.createElement('br'));
+    el.scrollTop = el.scrollHeight;
+  }
+  function clearLog(){ document.getElementById('log').innerHTML = ''; }
+
+  async function runSetup() {
+    var btn = document.getElementById('btn-setup');
+    btn.disabled = true;
+    log('Iniciando Firebase...', 'info');
+
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      app  = firebase.app();
+      db   = firebase.firestore();
+      auth = firebase.auth();
+      log('Firebase conectado ✓', 'ok');
+    } catch(e) {
+      log('Error Firebase: ' + e.message, 'err');
+      btn.disabled = false;
+      return;
+    }
+
+    log('Procesando ' + SYSTEM_ACCOUNTS.length + ' cuentas del sistema...', 'info');
+
+    for (var i = 0; i < SYSTEM_ACCOUNTS.length; i++) {
+      var acc = SYSTEM_ACCOUNTS[i];
+      log('→ ' + acc.email + ' (' + acc.role + ')', 'info');
+
+      try {
+        var cred;
+        try {
+          // Intentar crear
+          cred = await auth.createUserWithEmailAndPassword(acc.email, acc.password);
+          log('  ✓ Cuenta creada en Firebase Auth', 'ok');
+        } catch(e) {
+          if (e.code === 'auth/email-already-in-use') {
+            // Ya existe — hacer sign-in para obtener uid
+            log('  ⚠ Ya existe en Auth — obteniendo uid...', 'warn');
+            cred = await auth.signInWithEmailAndPassword(acc.email, acc.password);
+          } else {
+            throw e;
+          }
+        }
+
+        var uid = cred.user.uid;
+        // Guardar perfil en Firestore users/{uid}
+        await db.collection('users').doc(uid).set({
+          role:      acc.role,
+          name:      acc.name,
+          email:     acc.email,
+          createdAt: new Date().toISOString()
+        });
+        log('  ✓ Perfil guardado en Firestore (uid: ' + uid + ')', 'ok');
+
+        // Desloguear para procesar la siguiente cuenta
+        await auth.signOut();
+
+      } catch(e) {
+        log('  ✗ Error con ' + acc.email + ': ' + e.message, 'err');
+      }
+    }
+
+    log('', 'info');
+    log('═══════════════════════════════════════', 'info');
+    log('Setup completado.', 'ok');
+    log('Ahora elimina o protege este archivo (setup-auth.html).', 'warn');
+    log('El sitio ya puede usar Firebase Authentication.', 'ok');
+    btn.disabled = false;
+  }
+  </script>
+</body>
+</html>

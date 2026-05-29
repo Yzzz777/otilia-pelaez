@@ -267,11 +267,59 @@ function showDbStatus(){
   }
 }
 
+// ══════════════════════════════════════════════
+//  SANITIZACIÓN XSS — DOMPurify helper
+// ══════════════════════════════════════════════
+function safeHTML(dirty){
+  if(typeof DOMPurify !== 'undefined') return DOMPurify.sanitize(dirty||'');
+  // Fallback mínimo: escapar caracteres peligrosos
+  return String(dirty||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function safeText(dirty){
+  return String(dirty||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ══════════════════════════════════════════════
+//  FIREBASE AUTH — estado de sesión
+// ══════════════════════════════════════════════
+var _authObserverSet = false;
+
+function setupAuthObserver(){
+  if(_authObserverSet || !_firebaseReady) return;
+  _authObserverSet = true;
+  firebase.auth().onAuthStateChanged(function(fbUser){
+    if(fbUser && !APP.currentUser){
+      // Sesión de Firebase activa — restaurar perfil desde Firestore
+      _db.collection('users').doc(fbUser.uid).get()
+        .then(function(doc){
+          if(doc.exists){
+            var p = doc.data();
+            loginAs({
+              role:      p.role,
+              name:      p.name,
+              email:     fbUser.email,
+              studentId: p.studentId || null,
+              profId:    p.profId    || null,
+              child:     p.child     || null,
+              padreData: p.padreData || null,
+              fbUid:     fbUser.uid
+            });
+          } else {
+            // Perfil no existe en Firestore — desloguear
+            firebase.auth().signOut().catch(function(){});
+          }
+        })
+        .catch(function(){ firebase.auth().signOut().catch(function(){}); });
+    }
+  });
+}
+
 // ── INIT ──────────────────────────────────────────
 // Try to connect Firebase, then load data
 initFirebase().then(function(connected){
   persistLoad();
   setTimeout(showDbStatus, 500);
+  if(connected) setupAuthObserver();
 });
 
 // Auto-save every 30 seconds
@@ -344,21 +392,99 @@ function doRegister(){
   const alertEl=document.getElementById('reg-alert');
 
   if(!nombre||!apellido||!email||!pass){alertEl.textContent='Complete todos los campos.';alertEl.style.display='block';return;}
-  const allAccounts=[...APP.padres,...APP.students];
-  if(allAccounts.find(a=>a.email===email)||email===APP.accounts.admin.email){alertEl.textContent='Este correo ya está registrado.';alertEl.style.display='block';return;}
+  if(pass.length<6){alertEl.textContent='La contraseña debe tener al menos 6 caracteres.';alertEl.style.display='block';return;}
 
-  if(tipo==='padre'||tipo==='tutor'){
-    const hijo=document.getElementById('reg-hijo').value.trim();
-    const telPadre=document.getElementById('reg-tel-padre').value.trim();
-    if(!hijo){alertEl.textContent='Ingrese el nombre de su hijo/a.';alertEl.style.display='block';return;}
-    APP.padres.push({nombre,apellido,email,pass,hijo,telefono:telPadre,tipo});
-    persistSave();
-  } else {
+  if(tipo!=='padre'&&tipo!=='tutor'){
     alertEl.textContent='Los estudiantes reciben su cuenta del administrador del sistema.';alertEl.style.display='block';return;
   }
+
+  const hijo=document.getElementById('reg-hijo').value.trim();
+  const telPadre=document.getElementById('reg-tel-padre').value.trim();
+  if(!hijo){alertEl.textContent='Ingrese el nombre de su hijo/a.';alertEl.style.display='block';return;}
+
+  const padreData={nombre,apellido,email,hijo,telefono:telPadre,tipo};
+  const regBtn=document.querySelector('#register-form-wrap .login-btn-main');
+  if(regBtn) regBtn.disabled=true;
+
+  // ── Firebase Auth ──────────────────────────────────────────────
+  if(_firebaseReady && typeof firebase !== 'undefined' && firebase.auth){
+    firebase.auth().createUserWithEmailAndPassword(email, pass)
+      .then(function(cred){
+        var profile={role:'padre',name:nombre+' '+apellido,email:email,child:hijo,padreData:padreData};
+        return _db.collection('users').doc(cred.user.uid).set(profile).then(function(){
+          APP.padres.push(Object.assign({uid:cred.user.uid},padreData));
+          persistSave();
+          // Desloguear tras registro — que el usuario inicie sesión
+          return firebase.auth().signOut();
+        });
+      })
+      .then(function(){
+        if(regBtn) regBtn.disabled=false;
+        toast('¡Cuenta creada! Ya puedes iniciar sesión.','success');
+        showLogin();
+        document.getElementById('login-email').value=email;
+      })
+      .catch(function(err){
+        if(regBtn) regBtn.disabled=false;
+        if(err.code==='auth/email-already-in-use')
+          alertEl.textContent='Este correo ya está registrado.';
+        else if(err.code==='auth/weak-password')
+          alertEl.textContent='La contraseña es demasiado débil.';
+        else
+          alertEl.textContent='Error al crear cuenta: '+(err.message||err.code);
+        alertEl.style.display='block';
+      });
+    return;
+  }
+
+  // ── Fallback sin Firebase ──────────────────────────────────────
+  const allAccounts=[...APP.padres,...APP.students];
+  if(allAccounts.find(function(a){return a.email===email;})){
+    alertEl.textContent='Este correo ya está registrado.';alertEl.style.display='block';return;
+  }
+  APP.padres.push(Object.assign({pass},padreData));
+  persistSave();
   toast('¡Cuenta creada! Ya puedes iniciar sesión.','success');
   showLogin();
   document.getElementById('login-email').value=email;
+}
+
+// ── Buscar usuario en sistema legacy (fallback) ──────────────
+function findLegacyUser(email, pass){
+  ensureDefaultAccounts();
+  var sysKeys=['admin','profesor','enfermeria','secretaria','directora','orientacion','deporte'];
+  for(var i=0;i<sysKeys.length;i++){
+    var acc=APP.accounts[sysKeys[i]];
+    if(acc && email===acc.email.toLowerCase() && pass===acc.password)
+      return {role:acc.role, name:acc.name, email:email};
+  }
+  var st=(APP.students||[]).find(function(s){ return s.email&&s.email.toLowerCase()===email&&s.pass===pass; });
+  if(st) return {role:'estudiante',name:st.nombre+' '+st.apellido,email:email,studentId:st.id};
+  var pd=(APP.padres||[]).find(function(p){ return p.email&&p.email.toLowerCase()===email&&p.pass===pass; });
+  if(pd) return {role:'padre',name:pd.nombre+' '+pd.apellido,email:email,child:pd.hijo,padreData:pd};
+  var prof=(APP.profesores||[]).find(function(p){ return p.email&&p.email.toLowerCase()===email&&p.pass===pass; });
+  if(prof) return {role:'profesor',name:prof.nombre+' '+prof.apellido,email:email,profId:prof.id};
+  return null;
+}
+
+// ── Migrar usuario legacy a Firebase Auth ────────────────────
+function migrateUserToFirebaseAuth(email, pass, userData){
+  if(!_firebaseReady||!_db) return;
+  firebase.auth().createUserWithEmailAndPassword(email, pass)
+    .then(function(cred){
+      var profile = {role:userData.role,name:userData.name,email:email,migratedAt:new Date().toISOString()};
+      if(userData.studentId) profile.studentId=userData.studentId;
+      if(userData.profId)    profile.profId=userData.profId;
+      if(userData.child)     profile.child=userData.child;
+      if(userData.padreData) profile.padreData=userData.padreData;
+      return _db.collection('users').doc(cred.user.uid).set(profile);
+    })
+    .catch(function(e){
+      // Si el email ya existe en Firebase Auth, simplemente iniciar sesión
+      if(e.code==='auth/email-already-in-use'){
+        firebase.auth().signInWithEmailAndPassword(email,pass).catch(function(){});
+      }
+    });
 }
 
 function doLogin(){
@@ -366,7 +492,7 @@ function doLogin(){
   var passInput  = document.getElementById('login-password');
   var alertEl    = document.getElementById('login-alert');
   var email = (emailInput.value||'').trim().toLowerCase();
-  var pass  = (passInput.value||'').trim();   // trim espacios accidentales
+  var pass  = (passInput.value||'').trim();
   alertEl.style.display='none';
 
   if(!email||!pass){
@@ -374,60 +500,66 @@ function doLogin(){
     alertEl.style.display='block'; return;
   }
 
-  // Siempre garantizar cuentas antes de verificar
-  ensureDefaultAccounts();
-
-  // Seguridad: bloquear tras múltiples intentos fallidos
+  // Bloquear tras múltiples intentos fallidos
   var secCheck = checkLoginSecurity(email);
   if(secCheck.blocked){
     alertEl.textContent=secCheck.msg;
     alertEl.style.display='block'; return;
   }
 
-  // ── 1. Cuentas fijas del sistema ─────────────────────────────
-  var sysCuentas = [
-    {key:'admin',     roleName:'Administración'},
-    {key:'profesor',  roleName:'Profesor(a)'},
-    {key:'enfermeria',roleName:'Enfermería'},
-    {key:'secretaria',roleName:'Secretaría'},
-    {key:'directora', roleName:'Directora'},
-    {key:'orientacion',roleName:'Orientación'},
-    {key:'deporte',   roleName:'Ed. Física / Deporte'}
-  ];
-  for(var i=0;i<sysCuentas.length;i++){
-    var sc = sysCuentas[i];
-    var acc = APP.accounts[sc.key];
-    if(acc && email===acc.email.toLowerCase() && pass===acc.password){
-      clearLoginAttempts(email);
-      return loginAs({role:acc.role, name:acc.name, email:email});
-    }
+  // ── Firebase Auth (autenticación real en servidor) ────────────
+  if(_firebaseReady && typeof firebase !== 'undefined' && firebase.auth){
+    var loginBtn = document.querySelector('.login-btn-main span:first-child');
+    if(loginBtn) loginBtn.textContent='Iniciando…';
+    alertEl.style.display='none';
+
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+      .then(function(){
+        // onAuthStateChanged se encarga de llamar loginAs()
+        clearLoginAttempts(email);
+        if(loginBtn) loginBtn.textContent='Iniciar Sesión';
+      })
+      .catch(function(err){
+        if(loginBtn) loginBtn.textContent='Iniciar Sesión';
+        var noExiste = err.code==='auth/user-not-found'||err.code==='auth/invalid-credential'||err.code==='auth/invalid-email';
+        if(noExiste || err.code==='auth/wrong-password'){
+          // Intentar sistema legacy + migración automática
+          var legacyUser = findLegacyUser(email, pass);
+          if(legacyUser){
+            clearLoginAttempts(email);
+            migrateUserToFirebaseAuth(email, pass, legacyUser);
+            // onAuthStateChanged tomará el control tras la migración
+            // fallback inmediato mientras Firebase crea el usuario
+            if(!_authObserverSet) loginAs(legacyUser);
+          } else {
+            recordFailedLogin(email);
+            var att=(_loginAttempts[email]||{}).count||0;
+            var rem=_MAX_ATTEMPTS-att;
+            alertEl.textContent='❌ Correo o contraseña incorrectos.'+(rem>0?' ('+rem+' intentos restantes)':' Cuenta bloqueada temporalmente.');
+            alertEl.style.display='block';
+            var card=document.querySelector('.login-card');
+            if(card){card.style.animation='none';setTimeout(function(){card.style.animation='shake .4s ease';},10);}
+          }
+        } else {
+          alertEl.textContent='❌ Error: '+err.message;
+          alertEl.style.display='block';
+        }
+      });
+    return;
   }
 
-  // ── 2. Estudiantes (cuenta creada por admin) ──────────────────
-  var st=(APP.students||[]).find(function(s){
-    return s.email && s.email.toLowerCase()===email && s.pass===pass;
-  });
-  if(st){ clearLoginAttempts(email); return loginAs({role:'estudiante',name:st.nombre+' '+st.apellido,email:email,studentId:st.id}); }
-
-  // ── 3. Padres/Tutores ─────────────────────────────────────────
-  var padre=(APP.padres||[]).find(function(p){
-    return p.email && p.email.toLowerCase()===email && p.pass===pass;
-  });
-  if(padre){ clearLoginAttempts(email); return loginAs({role:'padre',name:padre.nombre+' '+padre.apellido,email:email,child:padre.hijo,padreData:padre}); }
-
-  // ── 4. Profesores adicionales ─────────────────────────────────
-  var prof=(APP.profesores||[]).find(function(p){
-    return p.email && p.email.toLowerCase()===email && p.pass===pass;
-  });
-  if(prof){ clearLoginAttempts(email); return loginAs({role:'profesor',name:prof.nombre+' '+prof.apellido,email:email,profId:prof.id}); }
-
-  // ── Credenciales incorrectas ──────────────────────────────────
+  // ── Fallback completo: sin Firebase (modo offline) ────────────
+  ensureDefaultAccounts();
+  var legacyUser = findLegacyUser(email, pass);
+  if(legacyUser){
+    clearLoginAttempts(email);
+    return loginAs(legacyUser);
+  }
   recordFailedLogin(email);
   var att=(_loginAttempts[email]||{}).count||0;
   var rem=_MAX_ATTEMPTS-att;
   alertEl.textContent='❌ Correo o contraseña incorrectos.'+(rem>0?' ('+rem+' intentos restantes)':' Cuenta bloqueada temporalmente.');
   alertEl.style.display='block';
-  // Shake animation
   var card=document.querySelector('.login-card');
   if(card){card.style.animation='none';setTimeout(function(){card.style.animation='shake .4s ease';},10);}
 }
@@ -785,6 +917,10 @@ function logout(){
   ['login-email','login-password'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('login-alert').style.display='none';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  // Cerrar sesión en Firebase Auth
+  if(_firebaseReady && typeof firebase !== 'undefined' && firebase.auth){
+    firebase.auth().signOut().catch(function(){});
+  }
   toast('Sesión cerrada','info');
 }
 
@@ -881,7 +1017,7 @@ function renderAnnouncements(){
 function renderAdminAnnTable(){
   const tbody=document.getElementById('admin-ann-body');
   if(!tbody)return;
-  tbody.innerHTML=APP.announcements.map(a=>`<tr><td><span class="ann-type ${a.tipo}">${a.tipo}</span></td><td>${a.titulo}</td><td>${a.fecha}</td><td><button class="tbl-btn del" onclick="deleteAnn(${a.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:#888;text-align:center;padding:16px;">Sin anuncios</td></tr>';
+  tbody.innerHTML=APP.announcements.map(a=>`<tr><td><span class="ann-type ${safeText(a.tipo)}">${safeText(a.tipo)}</span></td><td>${safeText(a.titulo)}</td><td>${safeText(a.fecha)}</td><td><button class="tbl-btn del" onclick="deleteAnn(${Number(a.id)||0})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:#888;text-align:center;padding:16px;">Sin anuncios</td></tr>';
 }
 function deleteAnn(id){APP.announcements=APP.announcements.filter(a=>a.id!==id);
   persistSave();renderAnnouncements();toast('Eliminado','info');}
@@ -1412,7 +1548,7 @@ function applyCfgHero(){
   var desc=document.getElementById('cfg-hero-desc');
   var badge=document.getElementById('cfg-hero-badge');
   var h1=document.querySelector('#hero h1');
-  if(h1&&title&&gold)h1.innerHTML=(title.value||'Centro Educativo')+'<br><span>'+(gold.value||'Otilia Peláez')+'</span>';
+  if(h1&&title&&gold)h1.innerHTML=safeHTML(safeText(title.value||'Centro Educativo')+'<br><span>'+safeText(gold.value||'Otilia Peláez')+'</span>');
   var sub=document.querySelector('#hero .hero-sub');
   if(sub&&desc)sub.textContent=desc.value;
   var badgeEl=document.querySelector('#hero .hero-badge');
@@ -2486,8 +2622,12 @@ function importarDatos(event){
 if(!APP.sesiones)APP.sesiones=[];
 
 function saveSession(user){
+  // NO se guarda contraseña — Firebase Auth gestiona la sesión de forma segura
   var sessions=JSON.parse(localStorage.getItem('otiSessions')||'{}');
-  sessions[user.email]={email:user.email,name:user.name,role:user.role,pass:user.pass,savedAt:Date.now()};
+  sessions[user.email]={email:user.email,name:user.name,role:user.role,savedAt:Date.now()};
+  localStorage.setItem('otiSessions',JSON.stringify(sessions));
+  // Asegurar que otiSessions anteriores con pass se limpien
+  Object.keys(sessions).forEach(function(k){ if(sessions[k].pass) delete sessions[k].pass; });
   localStorage.setItem('otiSessions',JSON.stringify(sessions));
 }
 
@@ -2513,14 +2653,12 @@ function loadRememberedAccounts(){
 
 function quickLogin(email){
   try{
-    var sessions=JSON.parse(localStorage.getItem('otiSessions')||'{}');
-    var s=sessions[email];if(!s)return;
-    // Fill login form
+    // Solo pre-rellenar el email — contraseña no se almacena por seguridad
     var emailEl=document.getElementById('login-email');
-    if(emailEl){emailEl.value=s.email;emailEl.dispatchEvent(new Event('input'));}
-    // Auto-login
-    doLoginWith(s.email,s.pass||'');
-  }catch(e){toast('No se pudo iniciar sesión automáticamente','error');}
+    if(emailEl){emailEl.value=email;emailEl.dispatchEvent(new Event('input'));}
+    var passEl=document.getElementById('login-password');
+    if(passEl) passEl.focus();
+  }catch(e){}
 }
 
 function clearSavedAccounts(){
@@ -2599,10 +2737,10 @@ function renderAnunciosPortal(containerId){
   el.innerHTML=APP.announcements.slice(0,6).map(function(a){
     var t=tipos[a.tipo]||{c:'#f8fafc',e:'📢'};
     return '<div style="background:'+t.c+';border-radius:14px;padding:18px;border:1px solid rgba(0,0,0,0.07);">'+
-      '<p style="font-size:11px;font-weight:800;text-transform:uppercase;color:#555;margin-bottom:6px;">'+t.e+' '+a.tipo+'</p>'+
-      '<h4 style="font-size:15px;color:var(--navy);margin:0 0 6px;">'+a.titulo+'</h4>'+
-      '<p style="font-size:13px;color:#555;line-height:1.5;margin:0 0 8px;">'+a.desc+'</p>'+
-      '<small style="color:#aaa;">'+a.fecha+(a.autor?' · '+a.autor:'')+'</small>'+
+      '<p style="font-size:11px;font-weight:800;text-transform:uppercase;color:#555;margin-bottom:6px;">'+t.e+' '+safeText(a.tipo)+'</p>'+
+      '<h4 style="font-size:15px;color:var(--navy);margin:0 0 6px;">'+safeText(a.titulo)+'</h4>'+
+      '<p style="font-size:13px;color:#555;line-height:1.5;margin:0 0 8px;">'+safeHTML(a.desc||'')+'</p>'+
+      '<small style="color:#aaa;">'+safeText(a.fecha)+(a.autor?' · '+safeText(a.autor):'')+'</small>'+
     '</div>';
   }).join('');
 }
@@ -6744,14 +6882,14 @@ function renderAnunciosPublic(){
     var lbl = labels[a.tipo]||a.tipo;
     return '<div style="background:white;border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);border-left:5px solid '+col+';">'
       +'<div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">'
-      +(a.img?'<img src="'+a.img+'" style="width:80px;height:80px;border-radius:10px;object-fit:cover;flex-shrink:0;">':'')
+      +(a.img?'<img src="'+a.img+'" loading="lazy" style="width:80px;height:80px;border-radius:10px;object-fit:cover;flex-shrink:0;">':'')
       +'<div style="flex:1;min-width:0;">'
       +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
-      +'<span style="background:'+bg+';color:'+col+';padding:3px 12px;border-radius:20px;font-size:11px;font-weight:800;">'+lbl+'</span>'
-      +(a.fecha?'<span style="color:#888;font-size:12px;">📅 '+a.fecha+'</span>':'')
+      +'<span style="background:'+bg+';color:'+col+';padding:3px 12px;border-radius:20px;font-size:11px;font-weight:800;">'+safeText(lbl)+'</span>'
+      +(a.fecha?'<span style="color:#888;font-size:12px;">📅 '+safeText(a.fecha)+'</span>':'')
       +'</div>'
-      +'<h3 style="margin:0 0 8px;color:var(--navy);font-size:16px;font-weight:800;">'+a.titulo+'</h3>'
-      +'<p style="margin:0;color:#555;font-size:14px;line-height:1.6;">'+a.desc+'</p>'
+      +'<h3 style="margin:0 0 8px;color:var(--navy);font-size:16px;font-weight:800;">'+safeText(a.titulo)+'</h3>'
+      +'<p style="margin:0;color:#555;font-size:14px;line-height:1.6;">'+safeHTML(a.desc||'')+'</p>'
       +'</div></div></div>';
   }).join('');
 }
