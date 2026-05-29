@@ -204,6 +204,7 @@ function persistLoad(){
         if(_k) APP.botConfig.iaKey = _k;
       }
       console.log('✅ Estado restaurado desde localStorage');
+      if(typeof updateCounters === 'function') updateCounters();
     }
   }catch(e){ console.warn('localStorage load error:',e); }
 
@@ -230,6 +231,8 @@ function persistLoad(){
             try{ localStorage.setItem(STORE_KEY, JSON.stringify(merged)); }catch(e){}
             // Re-apply UI if user is already logged in
             if(APP.currentUser) setTimeout(applyAllSavedConfig, 100);
+            // Refresh counters with latest data
+            if(typeof updateCounters === 'function') updateCounters();
           }
         })
         .catch(function(e){ console.warn('Firebase load error ('+chunkKey+'):', e); });
@@ -7902,7 +7905,7 @@ function initHeroParticles(){
   }
   draw();
 }
-document.addEventListener('DOMContentLoaded', initHeroParticles);
+// initHeroParticles handled by animaciones.js
 
 // ── LOADING SCREEN ────────────────────────────────
 window.addEventListener('load', function(){

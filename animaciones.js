@@ -9,9 +9,17 @@
 function initHeroParticles(){
   var hero = document.getElementById('hero');
   if(!hero) return;
+  if(document.getElementById('ap-hero-canvas')) return;
 
   var canvas = document.createElement('canvas');
   canvas.id = 'ap-hero-canvas';
+  canvas.style.position = 'absolute';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '0';
   hero.insertBefore(canvas, hero.firstChild);
 
   var ctx = canvas.getContext('2d');

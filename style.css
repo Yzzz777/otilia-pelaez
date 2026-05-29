@@ -5777,11 +5777,12 @@ body {
 
 #hero {
     background: linear-gradient(160deg, #0a1628 0%, #0f1c3a 45%, #1a3a6e 80%, #1a4a7a 100%) !important;
-    min-height: 88vh !important;
+    min-height: 75vh !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 100px 20px 60px !important;
+    padding: 80px 20px 50px !important;
     text-align: center !important;
     position: relative !important;
     overflow: hidden !important;
@@ -5796,7 +5797,7 @@ body {
     pointer-events: none !important;
 }
 
-#hero>div {
+#hero>div:not(.stats-bar) {
     position: relative !important;
     z-index: 2 !important;
     width: 100% !important;
@@ -5805,6 +5806,11 @@ body {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
+}
+
+#hero>.stats-bar {
+    position: relative !important;
+    z-index: 2 !important;
 }
 
 .hero-badge {
@@ -9899,6 +9905,10 @@ body.logged-in .page {
     padding-top: 0 !important;
 }
 
+/* En la página pública home, el hero maneja su propio espaciado */
+body:not(.logged-in) #page-home {
+    padding-top: 0 !important;
+}
 
 /* El hero en home mantiene su padding natural */
 
